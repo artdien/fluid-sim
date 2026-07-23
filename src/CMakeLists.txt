@@ -1,5 +1,6 @@
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
+find_package(CUDAToolkit REQUIRED)
 
 add_executable(fluid-sim)
 target_link_libraries(
@@ -7,6 +8,7 @@ target_link_libraries(
   PRIVATE
     glfw
     glad::glad
+    CUDA::cudart
 )
 target_include_directories(
   fluid-sim
@@ -21,7 +23,15 @@ target_compile_definitions(
 target_sources(
   fluid-sim
   PRIVATE
+    buffer/kernels/update_framebuffer.cu
+    buffer/framebuffer.cpp
     platform/debug.cpp
     platform/window.cpp
+    rendering/renderer.cpp
+    simulation/kernels/dummy.cu
+    simulation/grid.cpp
+    simulation/solver.cpp
+    utils/cuda.cpp
+    utils/gl.cpp
     main.cpp
   )
