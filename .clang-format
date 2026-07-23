@@ -10,3 +10,4 @@ SpaceBeforeCpp11BracedList: true
 AlwaysBreakTemplateDeclarations: Yes
 IndentRequiresClause: false
 IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
