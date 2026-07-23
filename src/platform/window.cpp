@@ -7,6 +7,8 @@
 
 #include <glad/glad.h>
 
+#include "platform/debug.hpp"
+
 namespace fluidsim::platform {
 
 Window::Window(u32 width, u32 height, const std::string& title) : title_ {title}, width_ {width}, height_ {height} {
@@ -21,6 +23,10 @@ Window::Window(u32 width, u32 height, const std::string& title) : title_ {title}
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+  if constexpr (DEBUG_BUILD) {
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+  }
+
   window_ = glfwCreateWindow(static_cast<i32>(width_), static_cast<i32>(height_), title_.c_str(), NULL, NULL);
   if (!window_) {
     glfwTerminate();
@@ -30,6 +36,14 @@ Window::Window(u32 width, u32 height, const std::string& title) : title_ {title}
   glfwMakeContextCurrent(window_);
   glfwSwapInterval(1);
   gladLoadGLLoader(reinterpret_cast<GLADloadproc>(&glfwGetProcAddress));
+
+  if constexpr (DEBUG_BUILD) {
+    // Can only be enabled after OpenGL context is created
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    glDebugMessageCallback(debug_callback, nullptr);
+  }
 
   std::cout << "Initialized window with OpenGL context\n";
   std::cout << "  OpenGL: " << glGetString(GL_VERSION) << '\n';

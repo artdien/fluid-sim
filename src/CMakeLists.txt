@@ -21,6 +21,7 @@ target_compile_definitions(
 target_sources(
   fluid-sim
   PRIVATE
+    platform/debug.cpp
     platform/window.cpp
     main.cpp
   )

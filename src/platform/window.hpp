@@ -16,9 +16,9 @@ public:
   /// Constructing a window does not open it automatically.
   /// The open method must be called for that.
   ///
-  /// @param width Width of the window.
+  /// @param width  Width of the window.
   /// @param height Height of the window.
-  /// @param title Title of the window.
+  /// @param title  Title of the window.
   Window(u32 width, u32 height, const std::string& title = "");
 
   Window(const Window&) = delete;
