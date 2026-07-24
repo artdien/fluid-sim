@@ -36,7 +36,9 @@ public:
   auto grid() const -> const GridView;
 
 private:
-  Grid grid_;
+  DoubleGrid u_;
+  DoubleGrid v_;
+  DoubleGrid dye_;
 };
 
 } // namespace fluidsim::simulation

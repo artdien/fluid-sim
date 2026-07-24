@@ -4,6 +4,6 @@
 
 namespace fluidsim::simulation::kernels {
 
-auto dummy(GridView grid) -> void;
+auto update_boundary(GridView dye) -> void;
 
 } // namespace fluidsim::simulation::kernels

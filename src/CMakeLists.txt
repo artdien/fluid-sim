@@ -28,7 +28,10 @@ target_sources(
     platform/debug.cpp
     platform/window.cpp
     rendering/renderer.cpp
-    simulation/kernels/dummy.cu
+    simulation/kernels/advection.cu
+    simulation/kernels/boundary.cu
+    simulation/kernels/diffusion.cu
+    simulation/kernels/initial.cu
     simulation/grid.cpp
     simulation/solver.cpp
     utils/cuda.cpp
