@@ -26,6 +26,7 @@ target_sources(
     buffer/kernels/update_framebuffer.cu
     buffer/framebuffer.cpp
     platform/debug.cpp
+    platform/input.cpp
     platform/window.cpp
     rendering/renderer.cpp
     simulation/kernels/advection.cu

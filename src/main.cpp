@@ -17,7 +17,7 @@ auto main() -> int {
   auto renderer {Renderer {width, height}};
   auto framebuffer {Framebuffer {width, height}};
 
-  window.open([&](auto _) {
+  window.open([&](MouseInput mouse [[maybe_unused]], KeyboardInput keyboard [[maybe_unused]], f64 elapsed_time [[maybe_unused]]) {
     solver.step();
     framebuffer.update(solver.grid());
     renderer.render(framebuffer.texture_id());
