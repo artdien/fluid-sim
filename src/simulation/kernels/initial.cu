@@ -20,11 +20,7 @@ __global__ auto initialize_horizontal_split_kernel(GridView dye) -> void {
 } // namespace
 
 auto initialize_horizontal_split(GridView dye) -> void {
-  const auto block_size {16u};
-  const auto blocks {dim3(static_cast<u32>(std::ceil((dye.width) / static_cast<f32>(block_size))), //
-                          static_cast<u32>(std::ceil((dye.height) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size, block_size)};
-
+  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
   initialize_horizontal_split_kernel<<<blocks, threads>>>(dye);
   utils::check_async_cuda_error();
 }

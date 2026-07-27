@@ -44,31 +44,19 @@ __global__ auto project_kernel(GridView u, GridView v, GridView pressure, f32 dt
 } // namespace
 
 auto calculate_divergence(GridView divergence, GridView u, GridView v, f32 dt, f32 density) -> void {
-  const auto block_size {16u};
-  const auto blocks {dim3(static_cast<u32>(std::ceil((divergence.width) / static_cast<f32>(block_size))), //
-                          static_cast<u32>(std::ceil((divergence.height) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size, block_size)};
-
+  const auto [blocks, threads] {utils::execution_configuration(divergence.width, divergence.height, 16)};
   calculate_divergence_kernel<<<blocks, threads>>>(divergence, u, v, dt, density);
   utils::check_async_cuda_error();
 }
 
 auto solve_pressure(GridView pressure_next, GridView pressure, GridView divergence) -> void {
-  const auto block_size {16u};
-  const auto blocks {dim3(static_cast<u32>(std::ceil((pressure.width) / static_cast<f32>(block_size))), //
-                          static_cast<u32>(std::ceil((pressure.height) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size, block_size)};
-
+  const auto [blocks, threads] {utils::execution_configuration(pressure.width, pressure.height, 16)};
   solve_pressure_kernel<<<blocks, threads>>>(pressure_next, pressure, divergence);
   utils::check_async_cuda_error();
 }
 
 auto project(GridView u, GridView v, GridView pressure, f32 dt, f32 density) -> void {
-  const auto block_size {16u};
-  const auto blocks {dim3(static_cast<u32>(std::ceil((pressure.width) / static_cast<f32>(block_size))), //
-                          static_cast<u32>(std::ceil((pressure.height) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size, block_size)};
-
+  const auto [blocks, threads] {utils::execution_configuration(pressure.width, pressure.height, 16)};
   project_kernel<<<blocks, threads>>>(u, v, pressure, dt, density);
   utils::check_async_cuda_error();
 }

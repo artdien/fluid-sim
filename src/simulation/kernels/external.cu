@@ -33,11 +33,7 @@ __global__ auto add_external_force_kernel(GridView u, GridView v, f32 position_x
 } // namespace
 
 auto add_external_force(GridView u, GridView v, f32 position_x, f32 position_y, f32 force_x, f32 force_y, f32 radius, f32 dt, f32 density) -> void {
-  const auto block_size {16u};
-  const auto blocks {dim3(static_cast<u32>(std::ceil((u.width) / static_cast<f32>(block_size))), //
-                          static_cast<u32>(std::ceil((u.height) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size, block_size)};
-
+  const auto [blocks, threads] {utils::execution_configuration(u.width, u.height, 16)};
   add_external_force_kernel<<<blocks, threads>>>(u, v, position_x, position_y, force_x, force_y, radius, dt, density);
   utils::check_async_cuda_error();
 }

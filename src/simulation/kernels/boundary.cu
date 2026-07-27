@@ -113,54 +113,42 @@ __global__ auto update_dye_boundary_columns_kernel(GridView dye) -> void {
 } // namespace
 
 auto update_u_boundary(GridView u) -> void {
-  const auto block_size {16u};
-  const auto blocks_height {dim3(static_cast<u32>(std::ceil((u.height) / static_cast<f32>(block_size))))};
-  const auto blocks_width {dim3(static_cast<u32>(std::ceil((u.width) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size)};
-
-  update_u_boundary_columns_kernel<<<blocks_height, threads>>>(u);
+  const auto [blocks_height, threads_height] {utils::execution_configuration(u.height, 16)};
+  update_u_boundary_columns_kernel<<<blocks_height, threads_height>>>(u);
   utils::check_async_cuda_error();
 
-  update_u_boundary_rows_kernel<<<blocks_width, threads>>>(u);
+  const auto [blocks_width, threads_width] {utils::execution_configuration(u.width, 16)};
+  update_u_boundary_rows_kernel<<<blocks_width, threads_width>>>(u);
   utils::check_async_cuda_error();
 }
 
 auto update_v_boundary(GridView v) -> void {
-  const auto block_size {16u};
-  const auto blocks_height {dim3(static_cast<u32>(std::ceil((v.height) / static_cast<f32>(block_size))))};
-  const auto blocks_width {dim3(static_cast<u32>(std::ceil((v.width) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size)};
-
-  update_v_boundary_columns_kernel<<<blocks_height, threads>>>(v);
+  const auto [blocks_height, threads_height] {utils::execution_configuration(v.height, 16)};
+  update_v_boundary_columns_kernel<<<blocks_height, threads_height>>>(v);
   utils::check_async_cuda_error();
 
-  update_v_boundary_rows_kernel<<<blocks_width, threads>>>(v);
+  const auto [blocks_width, threads_width] {utils::execution_configuration(v.width, 16)};
+  update_v_boundary_rows_kernel<<<blocks_width, threads_width>>>(v);
   utils::check_async_cuda_error();
 }
 
 auto update_pressure_boundary(GridView pressure) -> void {
-  const auto block_size {16u};
-  const auto blocks_height {dim3(static_cast<u32>(std::ceil((pressure.height) / static_cast<f32>(block_size))))};
-  const auto blocks_width {dim3(static_cast<u32>(std::ceil((pressure.width) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size)};
-
-  update_pressure_boundary_columns_kernel<<<blocks_height, threads>>>(pressure);
+  const auto [blocks_height, threads_height] {utils::execution_configuration(pressure.height, 16)};
+  update_pressure_boundary_columns_kernel<<<blocks_height, threads_height>>>(pressure);
   utils::check_async_cuda_error();
 
-  update_pressure_boundary_rows_kernel<<<blocks_width, threads>>>(pressure);
+  const auto [blocks_width, threads_width] {utils::execution_configuration(pressure.width, 16)};
+  update_pressure_boundary_rows_kernel<<<blocks_width, threads_width>>>(pressure);
   utils::check_async_cuda_error();
 }
 
 auto update_dye_boundary(GridView dye) -> void {
-  const auto block_size {16u};
-  const auto blocks_height {dim3(static_cast<u32>(std::ceil((dye.height) / static_cast<f32>(block_size))))};
-  const auto blocks_width {dim3(static_cast<u32>(std::ceil((dye.width) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size)};
-
-  update_dye_boundary_columns_kernel<<<blocks_height, threads>>>(dye);
+  const auto [blocks_height, threads_height] {utils::execution_configuration(dye.height, 16)};
+  update_dye_boundary_columns_kernel<<<blocks_height, threads_height>>>(dye);
   utils::check_async_cuda_error();
 
-  update_dye_boundary_rows_kernel<<<blocks_width, threads>>>(dye);
+  const auto [blocks_width, threads_width] {utils::execution_configuration(dye.width, 16)};
+  update_dye_boundary_rows_kernel<<<blocks_width, threads_width>>>(dye);
   utils::check_async_cuda_error();
 }
 

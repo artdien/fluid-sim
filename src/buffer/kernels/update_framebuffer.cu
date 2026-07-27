@@ -19,11 +19,7 @@ __global__ auto update_framebuffer_kernel(cudaSurfaceObject_t surface, simulatio
 } // namespace
 
 auto update_framebuffer(cudaSurfaceObject_t surface, simulation::GridView grid) -> void {
-  constexpr auto block_size {16u};
-  const auto blocks {dim3(static_cast<u32>(std::ceil((grid.width) / static_cast<f32>(block_size))),
-                          static_cast<u32>(std::ceil((grid.height) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size, block_size)};
-
+  const auto [blocks, threads] {utils::execution_configuration(grid.width, grid.height, 16)};
   update_framebuffer_kernel<<<blocks, threads>>>(surface, grid);
   utils::check_async_cuda_error();
 }

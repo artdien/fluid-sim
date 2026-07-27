@@ -35,4 +35,41 @@ auto check_cuda_error(i32 error, const std::source_location location = std::sour
 ///       Typically called immediately after a kernel launch.
 auto check_async_cuda_error(const std::source_location location = std::source_location::current()) -> void;
 
+#ifdef __CUDACC__
+
+struct ExecutionConfiguration {
+  dim3 blocks;
+  dim3 threads;
+};
+
+///@brief Calculates the execution configuration for a 1D CUDA kernel.
+///
+/// @param size       Total number of elements to process.
+/// @param block_size Number of threads per block.
+///
+/// @return An ExecutionConfiguration containing the calculated grid and block dimensions.
+inline auto execution_configuration(u32 width, u32 height, u32 block_size) -> ExecutionConfiguration {
+  return {
+      .blocks = dim3((width + block_size - 1) / block_size, (height + block_size - 1) / block_size),
+      .threads = dim3(block_size, block_size),
+  };
+}
+
+/// @brief Calculates the execution configuration for a 2D CUDA kernel.
+///
+/// @param width      Width of the 2D domain in elements.
+/// @param height     Height of the 2D domain in elements.
+/// @param block_size Dimension of the square thread blocks.
+///                   Results in a block size of block_size * block_size threads.
+///
+/// @return An ExecutionConfiguration containing the calculated grid and block dimensions.
+inline auto execution_configuration(u32 size, u32 block_size) -> ExecutionConfiguration {
+  return {
+      .blocks = dim3((size + block_size - 1) / block_size),
+      .threads = dim3(block_size),
+  };
+}
+
+#endif
+
 } // namespace fluidsim::utils

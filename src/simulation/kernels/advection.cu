@@ -66,31 +66,19 @@ __global__ auto advect_dye_kernel(GridView dye_next, GridView dye, GridView u, G
 } // namespace
 
 auto advect_u(GridView u_next, GridView u, GridView v, f32 dt) -> void {
-  const auto block_size {16u};
-  const auto blocks {dim3(static_cast<u32>(std::ceil((u.width) / static_cast<f32>(block_size))), //
-                          static_cast<u32>(std::ceil((u.height) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size, block_size)};
-
+  const auto [blocks, threads] {utils::execution_configuration(u.width, u.height, 16)};
   advect_u_kernel<<<blocks, threads>>>(u_next, u, v, dt);
   utils::check_async_cuda_error();
 }
 
 auto advect_v(GridView v_next, GridView u, GridView v, f32 dt) -> void {
-  const auto block_size {16u};
-  const auto blocks {dim3(static_cast<u32>(std::ceil((v.width) / static_cast<f32>(block_size))), //
-                          static_cast<u32>(std::ceil((v.height) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size, block_size)};
-
+  const auto [blocks, threads] {utils::execution_configuration(v.width, v.height, 16)};
   advect_v_kernel<<<blocks, threads>>>(v_next, u, v, dt);
   utils::check_async_cuda_error();
 }
 
 auto advect_dye(GridView dye_next, GridView dye, GridView u, GridView v, f32 dt) -> void {
-  const auto block_size {16u};
-  const auto blocks {dim3(static_cast<u32>(std::ceil((dye.width) / static_cast<f32>(block_size))), //
-                          static_cast<u32>(std::ceil((dye.height) / static_cast<f32>(block_size))))};
-  const auto threads {dim3(block_size, block_size)};
-
+  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
   advect_dye_kernel<<<blocks, threads>>>(dye_next, dye, u, v, dt);
   utils::check_async_cuda_error();
 }
