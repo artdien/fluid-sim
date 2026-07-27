@@ -32,6 +32,7 @@ target_sources(
     simulation/kernels/advection.cu
     simulation/kernels/boundary.cu
     simulation/kernels/diffusion.cu
+    simulation/kernels/external.cu
     simulation/kernels/initial.cu
     simulation/kernels/projection.cu
     simulation/grid.cpp

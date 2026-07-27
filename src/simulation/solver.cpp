@@ -5,6 +5,7 @@
 #include "simulation/kernels/advection.cuh"
 #include "simulation/kernels/boundary.cuh"
 #include "simulation/kernels/diffusion.cuh"
+#include "simulation/kernels/external.cuh"
 #include "simulation/kernels/initial.cuh"
 #include "simulation/kernels/projection.cuh"
 
@@ -31,6 +32,8 @@ Solver::Solver(u32 width, u32 height)
 }
 
 auto Solver::step() -> void {
+  const auto lock {std::lock_guard {mutex_}};
+
   kernels::advect_u(u_.next(), u_.current(), v_.current(), dt);
   kernels::update_u_boundary(u_.next());
   kernels::advect_v(v_.next(), u_.current(), v_.current(), dt);
@@ -68,6 +71,14 @@ auto Solver::step() -> void {
     kernels::update_dye_boundary(dye_.next());
     dye_.swap();
   }
+}
+
+auto Solver::add_external_force(f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void {
+  const auto lock {std::lock_guard {mutex_}};
+
+  kernels::add_external_force(u_.current(), v_.current(), position_x, position_y, force_x, force_y, 15.0f, dt, density);
+  kernels::update_u_boundary(u_.current());
+  kernels::update_v_boundary(v_.current());
 }
 
 auto Solver::grid() const -> const GridView {

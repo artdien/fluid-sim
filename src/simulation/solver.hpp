@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "platform/types.hpp"
 #include "simulation/grid.hpp"
 
@@ -30,6 +32,20 @@ public:
   ///       GPU-side processing after the method call should not require sychronization.
   auto step() -> void;
 
+  /// @brief Applies an external force to the fluid at a specific position.
+  ///
+  /// This method maps the provided floating-point coordinates to the underlying
+  /// grid cells and adds the force components to the velocity fields.
+  ///
+  /// @param position_x The x-coordinate where the force is applied.
+  /// @param position_y The y-coordinate where the force is applied.
+  /// @param force_x    The magnitude and direction of the force along the x-axis.
+  /// @param force_y    The magnitude and direction of the force along the y-axis.
+  ///
+  /// @note This method is thread-safe. It uses an internal mutex to prevent
+  ///       race conditions when updating grid buffers during a simulation step.
+  auto add_external_force(f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void;
+
   /// @brief Provides a view of the grid data used for visualization.
   ///
   /// @return GridView Read-only handle to the GPU buffer containing the visualization data.
@@ -41,6 +57,8 @@ private:
   DoubleGrid dye_;
   DoubleGrid pressure_;
   Grid divergence_;
+
+  std::mutex mutex_;
 };
 
 } // namespace fluidsim::simulation
