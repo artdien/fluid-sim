@@ -15,7 +15,13 @@ namespace {
 
 constexpr auto WINDOW_TITLE {std::string_view {"Fluid Simulation"}};
 
+auto process_input(Window* window, const KeyboardInput& keyboard) -> void {
+  if (keyboard.key == "esc") {
+    window->close();
+  }
 }
+
+} // namespace
 
 auto main() -> int {
   constexpr auto width {1920u};
@@ -26,8 +32,9 @@ auto main() -> int {
   auto renderer {Renderer {width, height}};
   auto framebuffer {Framebuffer {width, height}};
 
-  window.open([&](MouseInput mouse [[maybe_unused]], KeyboardInput keyboard [[maybe_unused]], f64 elapsed_time) {
+  window.open([&](MouseInput mouse [[maybe_unused]], KeyboardInput keyboard, f64 elapsed_time) {
     window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
+    process_input(&window, keyboard);
 
     solver.step();
     framebuffer.update(solver.grid());
