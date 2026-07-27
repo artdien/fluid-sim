@@ -11,7 +11,7 @@ __global__ auto update_framebuffer_kernel(cudaSurfaceObject_t surface, simulatio
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
   if (i <= grid.width && j <= grid.height) {
-    auto color {make_float4(grid.at(i, j), grid.at(i, j), grid.at(i, j), 1.0f)};
+    auto color {make_float4(__saturatef(grid.at(i, j)), __saturatef(grid.at(i, j)), __saturatef(grid.at(i, j)), 1.0f)};
     surf2Dwrite(color, surface, (i - 1) * sizeof(float4), (j - 1));
   }
 }
