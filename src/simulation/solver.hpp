@@ -39,6 +39,8 @@ private:
   DoubleGrid u_;
   DoubleGrid v_;
   DoubleGrid dye_;
+  DoubleGrid pressure_;
+  Grid divergence_;
 };
 
 } // namespace fluidsim::simulation
