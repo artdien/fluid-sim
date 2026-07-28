@@ -21,7 +21,9 @@ __global__ auto solve_pressure_kernel(GridView pressure_next, GridView pressure,
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
   if (i <= pressure.width && j <= pressure.height) {
-    pressure_next.at(i, j) = 0.25f * (pressure.at(i + 1, j) + pressure.at(i - 1, j) + pressure.at(i, j + 1) + pressure.at(i, j - 1)) - divergence.at(i, j);
+    pressure_next.at(i, j) =
+        (1.0f - jacobi_weight) * pressure.at(i, j) +
+        jacobi_weight * (0.25f * (pressure.at(i + 1, j) + pressure.at(i - 1, j) + pressure.at(i, j + 1) + pressure.at(i, j - 1)) - divergence.at(i, j));
   }
 }
 

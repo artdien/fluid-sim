@@ -20,6 +20,7 @@ auto upload_parameters(const SolverParameters& parameters) -> void {
   utils::check_cuda_error(cudaMemcpyToSymbol(&density, &parameters.density, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&viscosity, &parameters.viscosity, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&viscosity_dye, &parameters.viscosity_dye, sizeof(f32)));
+  utils::check_cuda_error(cudaMemcpyToSymbol(&jacobi_weight, &parameters.jacobi_weight, sizeof(f32)));
 }
 
 } // namespace

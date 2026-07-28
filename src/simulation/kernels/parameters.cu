@@ -4,3 +4,4 @@ __constant__ f32 dt;
 __constant__ f32 density;
 __constant__ f32 viscosity;
 __constant__ f32 viscosity_dye;
+__constant__ f32 jacobi_weight;

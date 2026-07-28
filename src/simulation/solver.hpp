@@ -13,6 +13,7 @@ struct SolverParameters {
   f32 viscosity {0.2f};
   f32 viscosity_dye {0.2f};
   u32 jacobi_iterations {40u};
+  f32 jacobi_weight {0.67f};
 };
 
 class Solver {
