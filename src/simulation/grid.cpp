@@ -6,31 +6,21 @@
 
 namespace fluidsim::simulation {
 
-namespace {
-
-auto allocate_device_memory(usize size_in_bytes) -> f32* {
-  f32* pointer;
-  utils::check_cuda_error(cudaMalloc(&pointer, size_in_bytes));
-  return pointer;
-}
-
-} // namespace
-
 Grid::Grid(u32 width, u32 height) : width_ {width + 2}, height_ {height + 2} {
   const auto deleter {[](f32* pointer) { cudaFree(pointer); }};
 
-  data_ = std::unique_ptr<f32[], CudaMemoryDeleter>(allocate_device_memory(width_ * height_ * sizeof(f32)), deleter);
-  grid_ = data_.get();
+  utils::check_cuda_error(cudaMallocPitch(&grid_, &pitch_, width_ * sizeof(f32), height_));
+  data_ = std::unique_ptr<f32[], CudaMemoryDeleter>(grid_, deleter);
 
   reset();
 }
 
 auto Grid::view() const -> GridView {
-  return GridView {width_ - 2, height_ - 2, grid_};
+  return GridView {width_ - 2, height_ - 2, pitch_, grid_};
 }
 
 auto Grid::reset() -> void {
-  cudaMemset(grid_, 0, width_ * height_ * sizeof(f32));
+  utils::check_cuda_error(cudaMemset2D(grid_, pitch_, 0, width_ * sizeof(f32), height_));
 }
 
 DoubleGrid::DoubleGrid(u32 width, u32 height) : grids_ {Grid {width, height}, Grid {width, height}}, current_idx_ {0u} {}

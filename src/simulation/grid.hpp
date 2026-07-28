@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <functional>
 #include <memory>
 
@@ -14,14 +15,15 @@ using CudaMemoryDeleter = std::function<void(f32*)>;
 struct GridView {
   u32 width;
   u32 height;
+  usize pitch;
   f32* grid;
 
   CUDA_HOST_DEVICE CUDA_FORCEINLINE f32& at(u32 i, u32 j) {
-    return grid[i + j * (width + 2u)];
+    return reinterpret_cast<f32*>(reinterpret_cast<std::byte*>(grid) + j * pitch)[i];
   }
 
   CUDA_HOST_DEVICE CUDA_FORCEINLINE const f32& at(u32 i, u32 j) const {
-    return grid[i + j * (width + 2u)];
+    return reinterpret_cast<f32*>(reinterpret_cast<std::byte*>(grid) + j * pitch)[i];
   }
 };
 
@@ -55,6 +57,7 @@ public:
 private:
   u32 width_;
   u32 height_;
+  usize pitch_;
   f32* grid_;
   std::unique_ptr<f32[], CudaMemoryDeleter> data_;
 };
