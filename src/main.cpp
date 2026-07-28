@@ -30,8 +30,10 @@ auto main() -> int {
   constexpr auto width {1920u};
   constexpr auto height {1080u};
 
+  auto parameters {SolverParameters {}};
+
   auto window {Window {width, height}};
-  auto solver {Solver {width, height}};
+  auto solver {Solver {parameters, width, height}};
   auto renderer {Renderer {width, height}};
   auto framebuffer {Framebuffer {width, height}};
 

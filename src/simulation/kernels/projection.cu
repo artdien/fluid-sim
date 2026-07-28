@@ -1,12 +1,13 @@
 #include "simulation/kernels/projection.cuh"
 
+#include "simulation/kernels/parameters.cuh"
 #include "utils/cuda.hpp"
 
 namespace fluidsim::simulation::kernels {
 
 namespace {
 
-__global__ auto calculate_divergence_kernel(GridView divergence, GridView u, GridView v, f32 dt, f32 density) -> void {
+__global__ auto calculate_divergence_kernel(GridView divergence, GridView u, GridView v) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
@@ -24,7 +25,7 @@ __global__ auto solve_pressure_kernel(GridView pressure_next, GridView pressure,
   }
 }
 
-__global__ auto project_kernel(GridView u, GridView v, GridView pressure, f32 dt, f32 density) -> void {
+__global__ auto project_kernel(GridView u, GridView v, GridView pressure) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
@@ -43,9 +44,9 @@ __global__ auto project_kernel(GridView u, GridView v, GridView pressure, f32 dt
 
 } // namespace
 
-auto calculate_divergence(GridView divergence, GridView u, GridView v, f32 dt, f32 density) -> void {
+auto calculate_divergence(GridView divergence, GridView u, GridView v) -> void {
   const auto [blocks, threads] {utils::execution_configuration(divergence.width, divergence.height, 16)};
-  calculate_divergence_kernel<<<blocks, threads>>>(divergence, u, v, dt, density);
+  calculate_divergence_kernel<<<blocks, threads>>>(divergence, u, v);
   utils::check_async_cuda_error();
 }
 
@@ -55,9 +56,9 @@ auto solve_pressure(GridView pressure_next, GridView pressure, GridView divergen
   utils::check_async_cuda_error();
 }
 
-auto project(GridView u, GridView v, GridView pressure, f32 dt, f32 density) -> void {
+auto project(GridView u, GridView v, GridView pressure) -> void {
   const auto [blocks, threads] {utils::execution_configuration(pressure.width, pressure.height, 16)};
-  project_kernel<<<blocks, threads>>>(u, v, pressure, dt, density);
+  project_kernel<<<blocks, threads>>>(u, v, pressure);
   utils::check_async_cuda_error();
 }
 

@@ -1,13 +1,13 @@
 #include "simulation/kernels/external.cuh"
 
+#include "simulation/kernels/parameters.cuh"
 #include "utils/cuda.hpp"
 
 namespace fluidsim::simulation::kernels {
 
 namespace {
 
-__global__ auto add_external_force_kernel(GridView u, GridView v, f32 position_x, f32 position_y, f32 force_x, f32 force_y, f32 radius, f32 dt, f32 density)
-    -> void {
+__global__ auto add_external_force_kernel(GridView u, GridView v, f32 position_x, f32 position_y, f32 force_x, f32 force_y, f32 radius) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
@@ -32,9 +32,9 @@ __global__ auto add_external_force_kernel(GridView u, GridView v, f32 position_x
 
 } // namespace
 
-auto add_external_force(GridView u, GridView v, f32 position_x, f32 position_y, f32 force_x, f32 force_y, f32 radius, f32 dt, f32 density) -> void {
+auto add_external_force(GridView u, GridView v, f32 position_x, f32 position_y, f32 force_x, f32 force_y, f32 radius) -> void {
   const auto [blocks, threads] {utils::execution_configuration(u.width, u.height, 16)};
-  add_external_force_kernel<<<blocks, threads>>>(u, v, position_x, position_y, force_x, force_y, radius, dt, density);
+  add_external_force_kernel<<<blocks, threads>>>(u, v, position_x, position_y, force_x, force_y, radius);
   utils::check_async_cuda_error();
 }
 

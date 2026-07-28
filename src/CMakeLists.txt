@@ -34,6 +34,7 @@ target_sources(
     simulation/kernels/diffusion.cu
     simulation/kernels/external.cu
     simulation/kernels/initial.cu
+    simulation/kernels/parameters.cu
     simulation/kernels/projection.cu
     simulation/grid.cpp
     simulation/solver.cpp

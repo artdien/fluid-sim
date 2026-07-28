@@ -1,5 +1,6 @@
 #include "simulation/kernels/advection.cuh"
 
+#include "simulation/kernels/parameters.cuh"
 #include "utils/cuda.hpp"
 
 namespace fluidsim::simulation::kernels {
@@ -15,7 +16,7 @@ __device__ __forceinline__ auto bilerp(f32 g_00, f32 g_01, f32 g_10, f32 g_11, /
          (x - x_l) * (y - y_b) * g_11;                                         //
 }
 
-__global__ auto advect_u_kernel(GridView u_next, GridView u, GridView v, f32 dt) -> void {
+__global__ auto advect_u_kernel(GridView u_next, GridView u, GridView v) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
@@ -31,7 +32,7 @@ __global__ auto advect_u_kernel(GridView u_next, GridView u, GridView v, f32 dt)
   }
 }
 
-__global__ auto advect_v_kernel(GridView v_next, GridView u, GridView v, f32 dt) -> void {
+__global__ auto advect_v_kernel(GridView v_next, GridView u, GridView v) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
@@ -47,7 +48,7 @@ __global__ auto advect_v_kernel(GridView v_next, GridView u, GridView v, f32 dt)
   }
 }
 
-__global__ auto advect_dye_kernel(GridView dye_next, GridView dye, GridView u, GridView v, f32 dt) -> void {
+__global__ auto advect_dye_kernel(GridView dye_next, GridView dye, GridView u, GridView v) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
@@ -65,21 +66,21 @@ __global__ auto advect_dye_kernel(GridView dye_next, GridView dye, GridView u, G
 
 } // namespace
 
-auto advect_u(GridView u_next, GridView u, GridView v, f32 dt) -> void {
+auto advect_u(GridView u_next, GridView u, GridView v) -> void {
   const auto [blocks, threads] {utils::execution_configuration(u.width, u.height, 16)};
-  advect_u_kernel<<<blocks, threads>>>(u_next, u, v, dt);
+  advect_u_kernel<<<blocks, threads>>>(u_next, u, v);
   utils::check_async_cuda_error();
 }
 
-auto advect_v(GridView v_next, GridView u, GridView v, f32 dt) -> void {
+auto advect_v(GridView v_next, GridView u, GridView v) -> void {
   const auto [blocks, threads] {utils::execution_configuration(v.width, v.height, 16)};
-  advect_v_kernel<<<blocks, threads>>>(v_next, u, v, dt);
+  advect_v_kernel<<<blocks, threads>>>(v_next, u, v);
   utils::check_async_cuda_error();
 }
 
-auto advect_dye(GridView dye_next, GridView dye, GridView u, GridView v, f32 dt) -> void {
+auto advect_dye(GridView dye_next, GridView dye, GridView u, GridView v) -> void {
   const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
-  advect_dye_kernel<<<blocks, threads>>>(dye_next, dye, u, v, dt);
+  advect_dye_kernel<<<blocks, threads>>>(dye_next, dye, u, v);
   utils::check_async_cuda_error();
 }
 

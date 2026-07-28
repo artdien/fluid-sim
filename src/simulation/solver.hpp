@@ -7,15 +7,24 @@
 
 namespace fluidsim::simulation {
 
+struct SolverParameters {
+  f32 dt {1.0f};
+  f32 density {1.0f};
+  f32 viscosity {0.2f};
+  f32 viscosity_dye {0.2f};
+  u32 jacobi_iterations {40u};
+};
+
 class Solver {
 public:
   /// @brief Creates a two-dimensional fluid solver.
   ///
   /// This constructor allocates GPU memory for several internal grids.
   ///
+  /// @param parameters Initial parameters for the solver.
   /// @param width  Number of horizontal grid cells.
   /// @param height Number of vertical grid cells.
-  Solver(u32 width, u32 height);
+  Solver(const SolverParameters& parameters, u32 width, u32 height);
 
   Solver(const Solver&) = delete;
   Solver(Solver&&) = delete;
@@ -46,12 +55,25 @@ public:
   ///       race conditions when updating grid buffers during a simulation step.
   auto add_external_force(f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void;
 
+  /// @brief Update the parameters used for the fluid simulation.
+  ///
+  /// The parameters can updated between every step.
+  /// Once updated, the next step will immediately use the new parameters.
+  ///
+  /// @param parameters New parameters for the solver.
+  ///
+  /// @note This method is thread-safe. It uses an internal mutex to prevent
+  ///       race conditions when updating parameters during a simulation step.
+  auto update_parameters(const SolverParameters parameters) -> void;
+
   /// @brief Provides a view of the grid data used for visualization.
   ///
   /// @return GridView Read-only handle to the GPU buffer containing the visualization data.
   auto grid() const -> const GridView;
 
 private:
+  SolverParameters parameters_;
+
   DoubleGrid u_;
   DoubleGrid v_;
   DoubleGrid dye_;
