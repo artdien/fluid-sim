@@ -90,9 +90,20 @@ public:
   auto operator=(DoubleGrid&&) -> DoubleGrid& = delete;
   ~DoubleGrid() = default;
 
+  /// @brief Returns a view of the current grid.
+  ///
+  /// @return A modifiable view of the current grid.
   auto current() const -> GridView<T>;
+
+  /// @brief Returns a view of the next grid.
+  ///
+  /// @return A modifiable view of the next grid.
   auto next() const -> GridView<T>;
+
+  /// @brief Swaps the roles of the current and next grids.
   auto swap() -> void;
+
+  /// @brief Resets both grids to their initial state.
   auto reset() -> void;
 
 private:
