@@ -35,12 +35,10 @@ __global__ auto project_kernel(GridView u, GridView v, GridView pressure) -> voi
     const auto factor {dt / density};
     const auto p {pressure.at(i, j)};
 
-    if (i <= u.width - 1) {
-      u.at(i, j) -= factor * (pressure.at(i + 1, j) - p);
-    }
-    if (j <= v.height - 1) {
-      v.at(i, j) -= factor * (pressure.at(i, j + 1) - p);
-    }
+    // This 'incorrectly' sets some boundary values for u and v.
+    // However, they get immediately corrected after this kernel.
+    u.at(i, j) -= factor * (pressure.at(i + 1, j) - p);
+    v.at(i, j) -= factor * (pressure.at(i, j + 1) - p);
   }
 }
 

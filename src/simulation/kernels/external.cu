@@ -20,12 +20,10 @@ __global__ auto add_external_force_kernel(GridView u, GridView v, f32 position_x
       const f32 density_inverse {1.0f / density};
       const f32 linear_falloff {1.0f - (sqrtf(r2) / radius)};
 
-      if (i <= u.width - 1) {
-        u.at(i, j) += dt * density_inverse * linear_falloff * force_x;
-      }
-      if (j <= v.height - 1) {
-        v.at(i, j) += dt * density_inverse * linear_falloff * force_y;
-      }
+      // This 'incorrectly' sets some boundary values for u and v.
+      // However, they get immediately corrected after this kernel.
+      u.at(i, j) += dt * density_inverse * linear_falloff * force_x;
+      v.at(i, j) += dt * density_inverse * linear_falloff * force_y;
     }
   }
 }
