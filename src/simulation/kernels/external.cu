@@ -19,7 +19,6 @@ __global__ auto add_external_force_kernel(GridView<float2> velocity, f32 positio
     const auto r2 {dx * dx + dy * dy};
 
     if (r2 < radius * radius) {
-      const auto density_inverse {1.0f / density};
       const auto linear_falloff {1.0f - (sqrtf(r2) / radius)};
       const auto vel {velocity.at(i, j)};
 

@@ -13,7 +13,7 @@ __global__ auto calculate_divergence_kernel(GridView<f32> divergence, GridView<f
 
   if (i <= divergence.width && j <= divergence.height) {
     const auto vel {velocity.at(i, j)};
-    divergence.at(i, j) = 0.25f * (density / dt) * (vel.x - velocity.at(i - 1, j).x + vel.y - velocity.at(i, j - 1).y);
+    divergence.at(i, j) = 0.25f * density_over_dt * (vel.x - velocity.at(i - 1, j).x + vel.y - velocity.at(i, j - 1).y);
   }
 }
 
@@ -33,14 +33,13 @@ __global__ auto project_kernel(GridView<float2> velocity, GridView<f32> pressure
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
   if (i <= pressure.width && j <= pressure.height) {
-    const auto factor {dt / density};
     const auto p {pressure.at(i, j)};
     const auto vel {velocity.at(i, j)};
 
     // This kernel 'incorrectly' sets some boundary values for the velocity.
     // However, they get corrected when updating the boundary values.
-    velocity.at(i, j) = make_float2(vel.x - factor * (pressure.at(i + 1, j) - p), //
-                                    vel.y - factor * (pressure.at(i, j + 1) - p));
+    velocity.at(i, j) = make_float2(vel.x - dt_over_density * (pressure.at(i + 1, j) - p), //
+                                    vel.y - dt_over_density * (pressure.at(i, j + 1) - p));
   }
 }
 
