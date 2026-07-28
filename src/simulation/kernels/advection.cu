@@ -7,80 +7,68 @@ namespace fluidsim::simulation::kernels {
 
 namespace {
 
-__device__ __forceinline__ auto bilerp(f32 g_00, f32 g_01, f32 g_10, f32 g_11, //
-                                       f32 x, f32 x_l, f32 x_r,                //
-                                       f32 y, f32 y_b, f32 y_t) -> f32 {       //
-  return (x_r - x) * (y_t - y) * g_00 +                                        //
-         (x_r - x) * (y - y_b) * g_01 +                                        //
-         (x - x_l) * (y_t - y) * g_10 +                                        //
-         (x - x_l) * (y - y_b) * g_11;                                         //
+__device__ __forceinline__ f32 bilerp(f32 g_00, f32 g_01, f32 g_10, f32 g_11, f32 t_x, f32 t_y) {
+  return (1.0f - t_x) * ((1.0f - t_y) * g_00 + t_y * g_01) + t_x * ((1.0f - t_y) * g_10 + t_y * g_11);
 }
 
-__global__ auto advect_u_kernel(GridView u_next, GridView u, GridView v) -> void {
+__global__ auto advect_velocity_kernel(GridView<float2> velocity_next, GridView<float2> velocity) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
-  if (i <= u.width && j <= u.height) {
-    const auto x {fminf(fmaxf(i - dt * u.at(i, j), 0.001f), static_cast<f32>(u.width))};
-    const auto y {fminf(fmaxf(j - 0.5f - dt * v.at(i, j), 0.0f), static_cast<f32>(u.height))};
-    const auto i_ {ceilf(x)}; // since x >= 0.001, i_ is at least 1.
-    const auto j_ {ceilf(y + 0.5f)};
+  // This kernel 'incorrectly' sets some boundary values for the velocity.
+  // However, they get corrected when updating the boundary values.
+  if (i <= velocity.width && j <= velocity.height) {
+    const auto vel {velocity.at(i, j)};
+    const auto dt_u {dt * vel.x};
+    const auto dt_v {dt * vel.y};
 
-    u_next.at(i, j) = bilerp(u.at(i_ - 1, j_ - 1), u.at(i_ - 1, j_), u.at(i_, j_ - 1), u.at(i_, j_), //
-                             x, i_ - 1.0f, i_,                                                       //
-                             y, j_ - 1.5f, j_ - 0.5f);                                               //
+    const auto x_u {fminf(fmaxf(i - dt_u, 0.001f), static_cast<f32>(velocity.width))};
+    const auto y_u {fminf(fmaxf(j - 0.5f - dt_v, 0.0f), static_cast<f32>(velocity.height))};
+    const auto i_u {ceilf(x_u)}; // since x >= 0.001, i_ is at least 1.
+    const auto j_u {ceilf(y_u + 0.5f)};
+
+    const auto velocity_u {bilerp(velocity.at(i_u - 1, j_u - 1).x, velocity.at(i_u - 1, j_u).x, velocity.at(i_u, j_u - 1).x, velocity.at(i_u, j_u).x,
+                                  x_u - (i_u - 1.0f), y_u - (j_u - 1.5f))};
+
+    const auto x_v = fminf(fmaxf(i - 0.5f - dt_u, 0.0f), static_cast<f32>(velocity.width));
+    const auto y_v = fminf(fmaxf(j - dt_v, 0.001f), static_cast<f32>(velocity.height));
+    const auto i_v = ceilf(x_v + 0.5f);
+    const auto j_v = ceilf(y_v); // since y >= 0.001, j_ is at least 1.
+
+    const auto velocity_v {bilerp(velocity.at(i_v - 1, j_v - 1).y, velocity.at(i_v - 1, j_v).y, velocity.at(i_v, j_v - 1).y, velocity.at(i_v, j_v).y,
+                                  x_v - (i_v - 1.5f), y_v - (j_v - 1.0f))};
+
+    velocity_next.at(i, j) = make_float2(velocity_u, velocity_v);
   }
 }
 
-__global__ auto advect_v_kernel(GridView v_next, GridView u, GridView v) -> void {
-  const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
-  const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
-
-  if (i <= v.width && j <= v.height) {
-    const auto x {fminf(fmaxf(i - 0.5f - dt * u.at(i, j), 0.0f), static_cast<f32>(v.width))};
-    const auto y {fminf(fmaxf(j - dt * v.at(i, j), 0.001f), static_cast<f32>(v.height))};
-    const auto i_ {ceilf(x + 0.5f)};
-    const auto j_ {ceilf(y)}; // since y >= 0.001, j_ is at least 1.
-
-    v_next.at(i, j) = bilerp(v.at(i_ - 1, j_ - 1), v.at(i_ - 1, j_), v.at(i_, j_ - 1), v.at(i_, j_), //
-                             x, i_ - 1.5f, i_ - 0.5f,                                                //
-                             y, j_ - 1.0f, j_);                                                      //
-  }
-}
-
-__global__ auto advect_dye_kernel(GridView dye_next, GridView dye, GridView u, GridView v) -> void {
+__global__ auto advect_dye_kernel(GridView<f32> dye_next, GridView<f32> dye, GridView<float2> velocity) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
   if (i <= dye.width && j <= dye.height) {
-    const auto x {fminf(fmaxf(i - 0.5f - dt * u.at(i, j), 0.0f), static_cast<f32>(dye.width))};
-    const auto y {fminf(fmaxf(j - 0.5f - dt * v.at(i, j), 0.0f), static_cast<f32>(dye.height))};
-    const auto i_ {ceilf(x + 0.5f)};
-    const auto j_ {ceilf(y + 0.5f)};
+    const auto vel {velocity.at(i, j)};
 
-    dye_next.at(i, j) = bilerp(dye.at(i_ - 1, j_ - 1), dye.at(i_ - 1, j_), dye.at(i_, j_ - 1), dye.at(i_, j_), //
-                               x, i_ - 1.5f, i_ - 0.5f,                                                        //
-                               y, j_ - 1.5f, j_ - 0.5f);                                                       //
+    const auto x_d {fminf(fmaxf(i - 0.5f - dt * vel.x, 0.0f), static_cast<f32>(dye.width))};
+    const auto y_d {fminf(fmaxf(j - 0.5f - dt * vel.y, 0.0f), static_cast<f32>(dye.height))};
+    const auto i_d {ceilf(x_d + 0.5f)};
+    const auto j_d {ceilf(y_d + 0.5f)};
+
+    dye_next.at(i, j) = bilerp(dye.at(i_d - 1, j_d - 1), dye.at(i_d - 1, j_d), dye.at(i_d, j_d - 1), dye.at(i_d, j_d), x_d - (i_d - 1.5f), y_d - (j_d - 1.5f));
   }
 }
 
 } // namespace
 
-auto advect_u(GridView u_next, GridView u, GridView v) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(u.width, u.height, 16)};
-  advect_u_kernel<<<blocks, threads>>>(u_next, u, v);
+auto advect_velocity(GridView<float2> velocity_next, GridView<float2> velocity) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(velocity.width, velocity.height, 16)};
+  advect_velocity_kernel<<<blocks, threads>>>(velocity_next, velocity);
   utils::check_async_cuda_error();
 }
 
-auto advect_v(GridView v_next, GridView u, GridView v) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(v.width, v.height, 16)};
-  advect_v_kernel<<<blocks, threads>>>(v_next, u, v);
-  utils::check_async_cuda_error();
-}
-
-auto advect_dye(GridView dye_next, GridView dye, GridView u, GridView v) -> void {
+auto advect_dye(GridView<f32> dye_next, GridView<f32> dye, GridView<float2> velocity) -> void {
   const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
-  advect_dye_kernel<<<blocks, threads>>>(dye_next, dye, u, v);
+  advect_dye_kernel<<<blocks, threads>>>(dye_next, dye, velocity);
   utils::check_async_cuda_error();
 }
 

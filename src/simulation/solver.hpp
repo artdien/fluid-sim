@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <mutex>
 
 #include "platform/types.hpp"
@@ -31,7 +32,7 @@ public:
   Solver(Solver&&) = delete;
   auto operator=(const Solver&) -> Solver& = delete;
   auto operator=(Solver&&) -> Solver& = delete;
-  ~Solver() = default;
+  ~Solver();
 
   /// @brief Advances the fluid simulation by one time step.
   ///
@@ -69,19 +70,15 @@ public:
 
   /// @brief Provides a view of the grid data used for visualization.
   ///
-  /// @return GridView Read-only handle to the GPU buffer containing the visualization data.
-  auto grid() const -> const GridView;
+  /// @return RawGridView Read-only handle to the GPU buffer containing the visualization data.
+  auto grid() const -> const RawGridView;
 
 private:
   SolverParameters parameters_;
-
-  DoubleGrid u_;
-  DoubleGrid v_;
-  DoubleGrid dye_;
-  DoubleGrid pressure_;
-  Grid divergence_;
-
   std::mutex mutex_;
+
+  struct Impl;
+  std::unique_ptr<Impl> pimpl_;
 };
 
 } // namespace fluidsim::simulation

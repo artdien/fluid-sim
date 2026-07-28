@@ -6,7 +6,7 @@ namespace fluidsim::simulation::kernels {
 
 namespace {
 
-__global__ auto initialize_horizontal_split_kernel(GridView dye) -> void {
+__global__ auto initialize_horizontal_split_kernel(GridView<f32> dye) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
@@ -19,7 +19,7 @@ __global__ auto initialize_horizontal_split_kernel(GridView dye) -> void {
 
 } // namespace
 
-auto initialize_horizontal_split(GridView dye) -> void {
+auto initialize_horizontal_split(GridView<f32> dye) -> void {
   const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
   initialize_horizontal_split_kernel<<<blocks, threads>>>(dye);
   utils::check_async_cuda_error();

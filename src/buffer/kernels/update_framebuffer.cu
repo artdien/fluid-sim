@@ -6,7 +6,7 @@ namespace fluidsim::buffer::kernels {
 
 namespace {
 
-__global__ auto update_framebuffer_kernel(cudaSurfaceObject_t surface, simulation::GridView grid) -> void {
+__global__ auto update_framebuffer_kernel(cudaSurfaceObject_t surface, simulation::GridView<f32> grid) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
@@ -18,7 +18,7 @@ __global__ auto update_framebuffer_kernel(cudaSurfaceObject_t surface, simulatio
 
 } // namespace
 
-auto update_framebuffer(cudaSurfaceObject_t surface, simulation::GridView grid) -> void {
+auto update_framebuffer(cudaSurfaceObject_t surface, simulation::GridView<f32> grid) -> void {
   const auto [blocks, threads] {utils::execution_configuration(grid.width, grid.height, 16)};
   update_framebuffer_kernel<<<blocks, threads>>>(surface, grid);
   utils::check_async_cuda_error();

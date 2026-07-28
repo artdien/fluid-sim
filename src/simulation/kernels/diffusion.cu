@@ -7,31 +7,27 @@ namespace fluidsim::simulation::kernels {
 
 namespace {
 
-__global__ auto diffuse_u_kernel(GridView u_next, GridView u) -> void {
+__global__ auto diffuse_velocity_kernel(GridView<float2> velocity_next, GridView<float2> velocity) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
-  if (i <= u.width - 1 && j <= u.height) {
-    const auto center {u.at(i, j)};
-    const auto stencil {u.at(i + 1, j) + u.at(i - 1, j) + u.at(i, j + 1) + u.at(i, j - 1) - 4.0f * center};
+  // This kernel 'incorrectly' sets some boundary values for the velocity.
+  // However, they get corrected when updating the boundary values.
+  if (i <= velocity.width && j <= velocity.height) {
+    const auto center {velocity.at(i, j)};
+    const auto right {velocity.at(i + 1, j)};
+    const auto left {velocity.at(i - 1, j)};
+    const auto up {velocity.at(i, j + 1)};
+    const auto down {velocity.at(i, j - 1)};
 
-    u_next.at(i, j) = center + dt * viscosity * stencil;
+    const auto stencil {make_float2(right.x + left.x + up.x + down.x - 4.0f * center.x, //
+                                    right.y + left.y + up.y + down.y - 4.0f * center.y)};
+
+    velocity_next.at(i, j) = make_float2(center.x + dt * viscosity * stencil.x, center.y + dt * viscosity * stencil.y);
   }
 }
 
-__global__ auto diffuse_v_kernel(GridView v_next, GridView v) -> void {
-  const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
-  const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
-
-  if (i <= v.width && j <= v.height - 1) {
-    const auto center {v.at(i, j)};
-    const auto stencil {v.at(i + 1, j) + v.at(i - 1, j) + v.at(i, j + 1) + v.at(i, j - 1) - 4.0f * center};
-
-    v_next.at(i, j) = center + dt * viscosity * stencil;
-  }
-}
-
-__global__ auto diffuse_dye_kernel(GridView dye_next, GridView dye) -> void {
+__global__ auto diffuse_dye_kernel(GridView<f32> dye_next, GridView<f32> dye) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
@@ -45,19 +41,13 @@ __global__ auto diffuse_dye_kernel(GridView dye_next, GridView dye) -> void {
 
 } // namespace
 
-auto diffuse_u(GridView u_next, GridView u) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(u.width, u.height, 16)};
-  diffuse_u_kernel<<<blocks, threads>>>(u_next, u);
+auto diffuse_velocity(GridView<float2> velocity_next, GridView<float2> velocity) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(velocity.width, velocity.height, 16)};
+  diffuse_velocity_kernel<<<blocks, threads>>>(velocity_next, velocity);
   utils::check_async_cuda_error();
 }
 
-auto diffuse_v(GridView v_next, GridView v) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(v.width, v.height, 16)};
-  diffuse_v_kernel<<<blocks, threads>>>(v_next, v);
-  utils::check_async_cuda_error();
-}
-
-auto diffuse_dye(GridView dye_next, GridView dye) -> void {
+auto diffuse_dye(GridView<f32> dye_next, GridView<f32> dye) -> void {
   const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
   diffuse_dye_kernel<<<blocks, threads>>>(dye_next, dye);
   utils::check_async_cuda_error();

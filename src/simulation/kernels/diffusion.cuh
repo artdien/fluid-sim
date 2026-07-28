@@ -4,10 +4,8 @@
 
 namespace fluidsim::simulation::kernels {
 
-auto diffuse_u(GridView u_next, GridView u) -> void;
+auto diffuse_velocity(GridView<float2> velocity_next, GridView<float2> velocity) -> void;
 
-auto diffuse_v(GridView v_next, GridView v) -> void;
-
-auto diffuse_dye(GridView dye_next, GridView dye) -> void;
+auto diffuse_dye(GridView<f32> dye_next, GridView<f32> dye) -> void;
 
 } // namespace fluidsim::simulation::kernels

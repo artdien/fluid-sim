@@ -4,10 +4,8 @@
 
 namespace fluidsim::simulation::kernels {
 
-auto advect_u(GridView u_next, GridView u, GridView v) -> void;
+auto advect_velocity(GridView<float2> velocity_next, GridView<float2> velocity) -> void;
 
-auto advect_v(GridView v_next, GridView u, GridView v) -> void;
-
-auto advect_dye(GridView dye_next, GridView dye, GridView u, GridView v) -> void;
+auto advect_dye(GridView<f32> dye_next, GridView<f32> dye, GridView<float2> velocity) -> void;
 
 } // namespace fluidsim::simulation::kernels

@@ -6,6 +6,6 @@
 
 namespace fluidsim::buffer::kernels {
 
-auto update_framebuffer(cudaSurfaceObject_t surface, simulation::GridView grid) -> void;
+auto update_framebuffer(cudaSurfaceObject_t surface, simulation::GridView<f32> grid) -> void;
 
 } // namespace fluidsim::buffer::kernels

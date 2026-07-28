@@ -31,9 +31,10 @@ public:
   /// @brief Updates the GPU framebuffer with the current state of the simulation grid.
   ///
   /// @param grid A view of the simulation data to be visualized.
+  ///
   /// @note This is a synchronous operation from the perspective of the CUDA stream.
   ///       After returning, subsequent OpenGL rendering calls can be immediately issued.
-  auto update(simulation::GridView grid) -> void;
+  auto update(simulation::RawGridView grid) -> void;
 
   /// @brief Retrieves the OpenGL handle of the underlying texture.
   ///

@@ -6,25 +6,21 @@ namespace fluidsim::simulation::kernels {
 
 namespace {
 
-__global__ auto update_u_boundary_rows_kernel(GridView u) -> void {
+__global__ auto update_velocity_boundary_rows_kernel(GridView<float2> velocity) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
 
-  if (i <= u.width - 1) {
-    u.at(i, 0) = u.at(i, 1);
-    u.at(i, u.height + 1) = u.at(i, u.height);
+  if (i <= velocity.width) {
+    if (i <= velocity.width - 1) {
+      velocity.at(i, 0).x = velocity.at(i, 1).x;
+      velocity.at(i, velocity.height + 1).x = velocity.at(i, velocity.height).x;
+    }
+
+    velocity.at(i, 0).y = 0.0f;
+    velocity.at(i, velocity.height).y = 0.0f;
   }
 }
 
-__global__ auto update_v_boundary_rows_kernel(GridView v) -> void {
-  const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
-
-  if (i <= v.width) {
-    v.at(i, 0) = 0.0f;
-    v.at(i, v.height) = 0.0f;
-  }
-}
-
-__global__ auto update_pressure_boundary_rows_kernel(GridView pressure) -> void {
+__global__ auto update_pressure_boundary_rows_kernel(GridView<f32> pressure) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
 
   if (i <= pressure.width) {
@@ -33,7 +29,7 @@ __global__ auto update_pressure_boundary_rows_kernel(GridView pressure) -> void 
   }
 }
 
-__global__ auto update_dye_boundary_rows_kernel(GridView dye) -> void {
+__global__ auto update_dye_boundary_rows_kernel(GridView<f32> dye) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
 
   if (i <= dye.width) {
@@ -42,41 +38,33 @@ __global__ auto update_dye_boundary_rows_kernel(GridView dye) -> void {
   }
 }
 
-__global__ auto update_u_boundary_columns_kernel(GridView u) -> void {
+__global__ auto update_velocity_boundary_columns_kernel(GridView<float2> velocity) -> void {
   const auto j {threadIdx.x + blockIdx.x * blockDim.x + 1};
+  if (j <= velocity.height) {
+    velocity.at(0, j).x = 0.0f;
+    velocity.at(velocity.width, j).x = 0.0f;
 
-  if (j <= u.height) {
-    u.at(0, j) = 0.0f;
-    u.at(u.width, j) = 0.0f;
-  }
+    if (j <= velocity.height - 1) {
+      velocity.at(0, j).y = velocity.at(1, j).y;
+      velocity.at(velocity.width + 1, j).y = velocity.at(velocity.width, j).y;
+    }
 
-  // Corner cells
-  if (j == 1) {
-    u.at(0, 0) = 0.5f * u.at(1, 1);                                   // bottom left
-    u.at(u.width, 0) = 0.5f * u.at(u.width - 1, 1);                   // bottom right
-    u.at(0, u.height + 1) = 0.5f * u.at(1, u.height);                 // top left
-    u.at(u.width, u.height + 1) = 0.5f * u.at(u.width - 1, u.height); // top right
+    // Corner cells
+    if (j == 1) {
+      velocity.at(0, 0).x = 0.5f * velocity.at(1, 1).x;                                                               // bottom left
+      velocity.at(velocity.width, 0).x = 0.5f * velocity.at(velocity.width - 1, 1).x;                                 // bottom right
+      velocity.at(0, velocity.height + 1).x = 0.5f * velocity.at(1, velocity.height).x;                               // top left
+      velocity.at(velocity.width, velocity.height + 1).x = 0.5f * velocity.at(velocity.width - 1, velocity.height).x; // top right
+
+      velocity.at(0, 0).y = 0.5f * velocity.at(1, 1).y;                                                                   // bottom left
+      velocity.at(velocity.width + 1, 0).y = 0.5f * velocity.at(velocity.width, 1).y;                                     // bottom right
+      velocity.at(0, velocity.height).y = 0.5f * velocity.at(1, velocity.height - 1).y;                                   // top left
+      velocity.at(velocity.width + 1, velocity.height).y = 0.5f * velocity.at(velocity.width + 1, velocity.height - 1).y; // top right
+    }
   }
 }
 
-__global__ auto update_v_boundary_columns_kernel(GridView v) -> void {
-  const auto j {threadIdx.x + blockIdx.x * blockDim.x + 1};
-
-  if (j <= v.height - 1) {
-    v.at(0, j) = v.at(1, j);
-    v.at(v.width + 1, j) = v.at(v.width, j);
-  }
-
-  // Corner cells
-  if (j == 1) {
-    v.at(0, 0) = 0.5f * v.at(1, 1);                                       // bottom left
-    v.at(v.width + 1, 0) = 0.5f * v.at(v.width, 1);                       // bottom right
-    v.at(0, v.height) = 0.5f * v.at(1, v.height - 1);                     // top left
-    v.at(v.width + 1, v.height) = 0.5f * v.at(v.width + 1, v.height - 1); // top right
-  }
-}
-
-__global__ auto update_pressure_boundary_columns_kernel(GridView pressure) -> void {
+__global__ auto update_pressure_boundary_columns_kernel(GridView<f32> pressure) -> void {
   const auto j {threadIdx.x + blockIdx.x * blockDim.x + 1};
 
   if (j <= pressure.height) {
@@ -93,7 +81,7 @@ __global__ auto update_pressure_boundary_columns_kernel(GridView pressure) -> vo
   }
 }
 
-__global__ auto update_dye_boundary_columns_kernel(GridView dye) -> void {
+__global__ auto update_dye_boundary_columns_kernel(GridView<f32> dye) -> void {
   const auto j {threadIdx.x + blockIdx.x * blockDim.x + 1};
 
   if (j <= dye.height) {
@@ -112,27 +100,17 @@ __global__ auto update_dye_boundary_columns_kernel(GridView dye) -> void {
 
 } // namespace
 
-auto update_u_boundary(GridView u) -> void {
-  const auto [blocks_height, threads_height] {utils::execution_configuration(u.height, 16)};
-  update_u_boundary_columns_kernel<<<blocks_height, threads_height>>>(u);
+auto update_velocity_boundary(GridView<float2> velocity) -> void {
+  const auto [blocks_height, threads_height] {utils::execution_configuration(velocity.height, 16)};
+  update_velocity_boundary_columns_kernel<<<blocks_height, threads_height>>>(velocity);
   utils::check_async_cuda_error();
 
-  const auto [blocks_width, threads_width] {utils::execution_configuration(u.width, 16)};
-  update_u_boundary_rows_kernel<<<blocks_width, threads_width>>>(u);
-  utils::check_async_cuda_error();
-}
-
-auto update_v_boundary(GridView v) -> void {
-  const auto [blocks_height, threads_height] {utils::execution_configuration(v.height, 16)};
-  update_v_boundary_columns_kernel<<<blocks_height, threads_height>>>(v);
-  utils::check_async_cuda_error();
-
-  const auto [blocks_width, threads_width] {utils::execution_configuration(v.width, 16)};
-  update_v_boundary_rows_kernel<<<blocks_width, threads_width>>>(v);
+  const auto [blocks_width, threads_width] {utils::execution_configuration(velocity.width, 16)};
+  update_velocity_boundary_rows_kernel<<<blocks_width, threads_width>>>(velocity);
   utils::check_async_cuda_error();
 }
 
-auto update_pressure_boundary(GridView pressure) -> void {
+auto update_pressure_boundary(GridView<f32> pressure) -> void {
   const auto [blocks_height, threads_height] {utils::execution_configuration(pressure.height, 16)};
   update_pressure_boundary_columns_kernel<<<blocks_height, threads_height>>>(pressure);
   utils::check_async_cuda_error();
@@ -142,7 +120,7 @@ auto update_pressure_boundary(GridView pressure) -> void {
   utils::check_async_cuda_error();
 }
 
-auto update_dye_boundary(GridView dye) -> void {
+auto update_dye_boundary(GridView<f32> dye) -> void {
   const auto [blocks_height, threads_height] {utils::execution_configuration(dye.height, 16)};
   update_dye_boundary_columns_kernel<<<blocks_height, threads_height>>>(dye);
   utils::check_async_cuda_error();

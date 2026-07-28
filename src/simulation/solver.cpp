@@ -25,67 +25,66 @@ auto upload_parameters(const SolverParameters& parameters) -> void {
 
 } // namespace
 
-Solver::Solver(const SolverParameters& parameters, u32 width, u32 height)
-    : parameters_ {parameters},   //
-      u_ {width, height},         //
-      v_ {width, height},         //
-      dye_ {width, height},       //
-      pressure_ {width, height},  //
-      divergence_ {width, height} //
-{
+struct Solver::Impl {
+  DoubleGrid<float2> velocity;
+  DoubleGrid<f32> dye;
+  DoubleGrid<f32> pressure;
+  Grid<f32> divergence;
+
+  Impl(u32 width, u32 height) : velocity {width, height}, dye {width, height}, pressure {width, height}, divergence {width, height} {}
+};
+
+Solver::Solver(const SolverParameters& parameters, u32 width, u32 height) : parameters_ {parameters}, pimpl_ {std::make_unique<Impl>(width, height)} {
   upload_parameters(parameters_);
 
-  kernels::initialize_horizontal_split(dye_.current());
+  kernels::initialize_horizontal_split(pimpl_->dye.current());
+}
+
+Solver::~Solver() {
+  // Destructor implementation necessary since full definition of struct Impl is only visible in source file.
+  // Otherwise unique pointer can't instantiate its own destructor.
 }
 
 auto Solver::step() -> void {
   const auto lock {std::lock_guard {mutex_}};
 
-  kernels::advect_u(u_.next(), u_.current(), v_.current());
-  kernels::update_u_boundary(u_.next());
-  kernels::advect_v(v_.next(), u_.current(), v_.current());
-  kernels::update_v_boundary(v_.next());
-  u_.swap();
-  v_.swap();
+  kernels::advect_velocity(pimpl_->velocity.next(), pimpl_->velocity.current());
+  kernels::update_velocity_boundary(pimpl_->velocity.next());
+  pimpl_->velocity.swap();
 
-  if (viscosity > 0.0f) {
-    kernels::diffuse_u(u_.next(), u_.current());
-    kernels::update_u_boundary(u_.next());
-    kernels::diffuse_v(v_.next(), v_.current());
-    kernels::update_v_boundary(v_.next());
-    u_.swap();
-    v_.swap();
+  if (parameters_.viscosity > 0.0f) {
+    kernels::diffuse_velocity(pimpl_->velocity.next(), pimpl_->velocity.current());
+    kernels::update_velocity_boundary(pimpl_->velocity.next());
+    pimpl_->velocity.swap();
   }
 
-  kernels::calculate_divergence(divergence_.view(), u_.current(), v_.current());
+  kernels::calculate_divergence(pimpl_->divergence.view(), pimpl_->velocity.current());
 
   for (auto i {0u}; i < parameters_.jacobi_iterations; ++i) {
-    kernels::solve_pressure(pressure_.next(), pressure_.current(), divergence_.view());
-    kernels::update_pressure_boundary(pressure_.next());
-    pressure_.swap();
+    kernels::solve_pressure(pimpl_->pressure.next(), pimpl_->pressure.current(), pimpl_->divergence.view());
+    kernels::update_pressure_boundary(pimpl_->pressure.next());
+    pimpl_->pressure.swap();
   }
 
-  kernels::project(u_.current(), v_.current(), pressure_.current());
-  kernels::update_u_boundary(u_.current());
-  kernels::update_v_boundary(v_.current());
+  kernels::project(pimpl_->velocity.current(), pimpl_->pressure.current());
+  kernels::update_velocity_boundary(pimpl_->velocity.current());
 
-  kernels::advect_dye(dye_.next(), dye_.current(), u_.current(), v_.current());
-  kernels::update_dye_boundary(dye_.next());
-  dye_.swap();
+  kernels::advect_dye(pimpl_->dye.next(), pimpl_->dye.current(), pimpl_->velocity.current());
+  kernels::update_dye_boundary(pimpl_->dye.next());
+  pimpl_->dye.swap();
 
-  if (viscosity_dye > 0.0f) {
-    kernels::diffuse_dye(dye_.next(), dye_.current());
-    kernels::update_dye_boundary(dye_.next());
-    dye_.swap();
+  if (parameters_.viscosity_dye > 0.0f) {
+    kernels::diffuse_dye(pimpl_->dye.next(), pimpl_->dye.current());
+    kernels::update_dye_boundary(pimpl_->dye.next());
+    pimpl_->dye.swap();
   }
 }
 
 auto Solver::add_external_force(f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void {
   const auto lock {std::lock_guard {mutex_}};
 
-  kernels::add_external_force(u_.current(), v_.current(), position_x, position_y, force_x, force_y, 15.0f);
-  kernels::update_u_boundary(u_.current());
-  kernels::update_v_boundary(v_.current());
+  kernels::add_external_force(pimpl_->velocity.current(), position_x, position_y, force_x, force_y, 15.0f);
+  kernels::update_velocity_boundary(pimpl_->velocity.current());
 }
 
 auto Solver::update_parameters(const SolverParameters parameters) -> void {
@@ -94,8 +93,8 @@ auto Solver::update_parameters(const SolverParameters parameters) -> void {
   upload_parameters(parameters);
 }
 
-auto Solver::grid() const -> const GridView {
-  return dye_.current();
+auto Solver::grid() const -> const RawGridView {
+  return pimpl_->dye.current().raw();
 }
 
 } // namespace fluidsim::simulation

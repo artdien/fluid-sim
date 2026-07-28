@@ -29,7 +29,7 @@ Framebuffer::~Framebuffer() {
   glDeleteTextures(1, &texture_id_);
 }
 
-auto Framebuffer::update(simulation::GridView grid) -> void {
+auto Framebuffer::update(simulation::RawGridView grid) -> void {
   auto texture {cudaArray_t {}};
   auto surface {cudaSurfaceObject_t {}};
   auto descriptor {cudaResourceDesc {}};
@@ -41,7 +41,7 @@ auto Framebuffer::update(simulation::GridView grid) -> void {
   descriptor.res.array.array = texture;
   utils::check_cuda_error(cudaCreateSurfaceObject(&surface, &descriptor));
 
-  kernels::update_framebuffer(surface, grid);
+  kernels::update_framebuffer(surface, simulation::GridView<f32>(grid));
   utils::check_async_cuda_error();
 
   utils::check_cuda_error(cudaDestroySurfaceObject(surface));

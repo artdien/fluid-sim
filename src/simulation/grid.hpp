@@ -10,23 +10,40 @@
 
 namespace fluidsim::simulation {
 
-using CudaMemoryDeleter = std::function<void(f32*)>;
+template <typename T>
+using CudaMemoryDeleter = std::function<void(T*)>;
 
+struct RawGridView {
+  u32 width;
+  u32 height;
+  usize pitch;
+  void* grid;
+};
+
+template <typename T>
 struct GridView {
   u32 width;
   u32 height;
   usize pitch;
-  f32* grid;
+  T* grid;
 
-  CUDA_HOST_DEVICE CUDA_FORCEINLINE f32& at(u32 i, u32 j) {
-    return reinterpret_cast<f32*>(reinterpret_cast<std::byte*>(grid) + j * pitch)[i];
+  explicit GridView(const RawGridView& raw) : width {raw.width}, height {raw.height}, pitch {raw.pitch}, grid {reinterpret_cast<T*>(raw.grid)} {}
+  GridView(u32 width, u32 height, usize pitch, T* grid) : width {width}, height {height}, pitch {pitch}, grid {grid} {}
+
+  CUDA_HOST auto raw() -> RawGridView {
+    return {width, height, pitch, reinterpret_cast<void*>(grid)};
   }
 
-  CUDA_HOST_DEVICE CUDA_FORCEINLINE const f32& at(u32 i, u32 j) const {
-    return reinterpret_cast<f32*>(reinterpret_cast<std::byte*>(grid) + j * pitch)[i];
+  CUDA_DEVICE CUDA_FORCEINLINE auto at(u32 i, u32 j) -> T& {
+    return reinterpret_cast<T*>(reinterpret_cast<std::byte*>(grid) + j * pitch)[i];
+  }
+
+  CUDA_DEVICE CUDA_FORCEINLINE auto at(u32 i, u32 j) const -> const T& {
+    return reinterpret_cast<T*>(reinterpret_cast<std::byte*>(grid) + j * pitch)[i];
   }
 };
 
+template <typename T>
 class Grid {
 public:
   /// @brief Creates a two-dimensional grid in GPU memory with a boundary strip.
@@ -49,7 +66,7 @@ public:
   /// However, the grid itself is the full grid, i.e. indexing into the boundary strip cells is possible.
   ///
   /// @return Modifiable view of grid.
-  auto view() const -> GridView;
+  auto view() const -> GridView<T>;
 
   /// @brief Resets a grid to its initial state.
   auto reset() -> void;
@@ -58,10 +75,11 @@ private:
   u32 width_;
   u32 height_;
   usize pitch_;
-  f32* grid_;
-  std::unique_ptr<f32[], CudaMemoryDeleter> data_;
+  T* grid_;
+  std::unique_ptr<T[], CudaMemoryDeleter<T>> data_;
 };
 
+template <typename T>
 class DoubleGrid {
 public:
   DoubleGrid(u32 width, u32 height);
@@ -72,13 +90,13 @@ public:
   auto operator=(DoubleGrid&&) -> DoubleGrid& = delete;
   ~DoubleGrid() = default;
 
-  auto current() const -> GridView;
-  auto next() const -> GridView;
+  auto current() const -> GridView<T>;
+  auto next() const -> GridView<T>;
   auto swap() -> void;
   auto reset() -> void;
 
 private:
-  std::array<Grid, 2> grids_;
+  std::array<Grid<T>, 2> grids_;
   u32 current_idx_;
 };
 
