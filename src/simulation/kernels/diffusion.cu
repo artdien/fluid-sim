@@ -14,11 +14,11 @@ __global__ auto diffuse_velocity_kernel(GridView<float2> velocity_next, GridView
   // This kernel 'incorrectly' sets some boundary values for the velocity.
   // However, they get corrected when updating the boundary values.
   if (i <= velocity.width && j <= velocity.height) {
-    const auto center {velocity.at(i, j)};
-    const auto right {velocity.at(i + 1, j)};
-    const auto left {velocity.at(i - 1, j)};
-    const auto up {velocity.at(i, j + 1)};
-    const auto down {velocity.at(i, j - 1)};
+    const auto center {velocity.ro(i, j)};
+    const auto right {velocity.ro(i + 1, j)};
+    const auto left {velocity.ro(i - 1, j)};
+    const auto up {velocity.ro(i, j + 1)};
+    const auto down {velocity.ro(i, j - 1)};
 
     const auto stencil {make_float2(right.x + left.x + up.x + down.x - 4.0f * center.x, //
                                     right.y + left.y + up.y + down.y - 4.0f * center.y)};
@@ -32,8 +32,8 @@ __global__ auto diffuse_dye_kernel(GridView<f32> dye_next, GridView<f32> dye) ->
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
   if (i <= dye.width && j <= dye.height) {
-    const auto center {dye.at(i, j)};
-    const auto stencil {dye.at(i + 1, j) + dye.at(i - 1, j) + dye.at(i, j + 1) + dye.at(i, j - 1) - 4.0f * center};
+    const auto center {dye.ro(i, j)};
+    const auto stencil {dye.ro(i + 1, j) + dye.ro(i - 1, j) + dye.ro(i, j + 1) + dye.ro(i, j - 1) - 4.0f * center};
 
     dye_next.at(i, j) = center + dt * viscosity_dye * stencil;
   }

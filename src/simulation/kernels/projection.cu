@@ -12,8 +12,8 @@ __global__ auto calculate_divergence_kernel(GridView<f32> divergence, GridView<f
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
   if (i <= divergence.width && j <= divergence.height) {
-    const auto vel {velocity.at(i, j)};
-    divergence.at(i, j) = 0.25f * density_over_dt * (vel.x - velocity.at(i - 1, j).x + vel.y - velocity.at(i, j - 1).y);
+    const auto vel {velocity.ro(i, j)};
+    divergence.at(i, j) = 0.25f * density_over_dt * (vel.x - velocity.ro(i - 1, j).x + vel.y - velocity.ro(i, j - 1).y);
   }
 }
 
@@ -23,8 +23,8 @@ __global__ auto solve_pressure_kernel(GridView<f32> pressure_next, GridView<f32>
 
   if (i <= pressure.width && j <= pressure.height) {
     pressure_next.at(i, j) =
-        (1.0f - jacobi_weight) * pressure.at(i, j) +
-        jacobi_weight * (0.25f * (pressure.at(i + 1, j) + pressure.at(i - 1, j) + pressure.at(i, j + 1) + pressure.at(i, j - 1)) - divergence.at(i, j));
+        (1.0f - jacobi_weight) * pressure.ro(i, j) +
+        jacobi_weight * (0.25f * (pressure.ro(i + 1, j) + pressure.ro(i - 1, j) + pressure.ro(i, j + 1) + pressure.ro(i, j - 1)) - divergence.ro(i, j));
   }
 }
 
@@ -33,13 +33,13 @@ __global__ auto project_kernel(GridView<float2> velocity, GridView<f32> pressure
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
   if (i <= pressure.width && j <= pressure.height) {
-    const auto p {pressure.at(i, j)};
-    const auto vel {velocity.at(i, j)};
+    const auto p {pressure.ro(i, j)};
+    const auto vel {velocity.ro(i, j)};
 
     // This kernel 'incorrectly' sets some boundary values for the velocity.
     // However, they get corrected when updating the boundary values.
-    velocity.at(i, j) = make_float2(vel.x - dt_over_density * (pressure.at(i + 1, j) - p), //
-                                    vel.y - dt_over_density * (pressure.at(i, j + 1) - p));
+    velocity.at(i, j) = make_float2(vel.x - dt_over_density * (pressure.ro(i + 1, j) - p), //
+                                    vel.y - dt_over_density * (pressure.ro(i, j + 1) - p));
   }
 }
 

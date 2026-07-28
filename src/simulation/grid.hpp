@@ -41,6 +41,19 @@ struct GridView {
   CUDA_DEVICE CUDA_FORCEINLINE auto at(u32 i, u32 j) const -> const T& {
     return reinterpret_cast<T*>(reinterpret_cast<std::byte*>(grid) + j * pitch)[i];
   }
+
+#ifdef __CUDACC__
+  // The following two methods should only be used for non-coherent loads for read-only data,
+  // e.g. if reading data from a source grid which is not modified within the kernel call.
+
+  CUDA_DEVICE CUDA_FORCEINLINE auto ro(u32 i, u32 j) -> T {
+    return __ldg(&reinterpret_cast<T*>(reinterpret_cast<std::byte*>(grid) + j * pitch)[i]);
+  }
+
+  CUDA_DEVICE CUDA_FORCEINLINE auto ro(u32 i, u32 j) const -> T {
+    return __ldg(&reinterpret_cast<T*>(reinterpret_cast<std::byte*>(grid) + j * pitch)[i]);
+  }
+#endif
 };
 
 template <typename T>
