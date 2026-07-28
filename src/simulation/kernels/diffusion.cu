@@ -20,10 +20,10 @@ __global__ auto diffuse_velocity_kernel(GridView<float2> velocity_next, GridView
     const auto up {velocity.ro(i, j + 1)};
     const auto down {velocity.ro(i, j - 1)};
 
-    const auto stencil {make_float2(right.x + left.x + up.x + down.x - 4.0f * center.x, //
-                                    right.y + left.y + up.y + down.y - 4.0f * center.y)};
+    const auto sum {make_float2(right.x + left.x + up.x + down.x, right.y + left.y + up.y + down.y)};
 
-    velocity_next.at(i, j) = make_float2(center.x + dt * viscosity * stencil.x, center.y + dt * viscosity * stencil.y);
+    velocity_next.at(i, j) = make_float2((1.0f - 4.0f * viscosity_times_dt) * center.x + viscosity_times_dt * sum.x,
+                                         (1.0f - 4.0f * viscosity_times_dt) * center.y + viscosity_times_dt * sum.y);
   }
 }
 
@@ -33,9 +33,9 @@ __global__ auto diffuse_dye_kernel(GridView<f32> dye_next, GridView<f32> dye) ->
 
   if (i <= dye.width && j <= dye.height) {
     const auto center {dye.ro(i, j)};
-    const auto stencil {dye.ro(i + 1, j) + dye.ro(i - 1, j) + dye.ro(i, j + 1) + dye.ro(i, j - 1) - 4.0f * center};
+    const auto sum {dye.ro(i + 1, j) + dye.ro(i - 1, j) + dye.ro(i, j + 1) + dye.ro(i, j - 1)};
 
-    dye_next.at(i, j) = center + dt * viscosity_dye * stencil;
+    dye_next.at(i, j) = (1.0f - 4.0f * viscosity_dye_times_dt) * center + viscosity_dye_times_dt * sum;
   }
 }
 

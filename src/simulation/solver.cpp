@@ -16,18 +16,23 @@ namespace fluidsim::simulation {
 namespace {
 
 auto upload_parameters(const SolverParameters& parameters) -> void {
-  const auto density_inverse_ {1.0f / parameters.density};
-  const auto density_over_dt_ {parameters.density / parameters.dt};
-  const auto dt_over_density_ {parameters.dt / parameters.density};
-
   utils::check_cuda_error(cudaMemcpyToSymbol(&dt, &parameters.dt, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&density, &parameters.density, sizeof(f32)));
-  utils::check_cuda_error(cudaMemcpyToSymbol(&density_inverse, &density_inverse_, sizeof(f32)));
-  utils::check_cuda_error(cudaMemcpyToSymbol(&density_over_dt, &density_over_dt_, sizeof(f32)));
-  utils::check_cuda_error(cudaMemcpyToSymbol(&dt_over_density, &dt_over_density_, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&viscosity, &parameters.viscosity, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&viscosity_dye, &parameters.viscosity_dye, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&jacobi_weight, &parameters.jacobi_weight, sizeof(f32)));
+
+  const auto dt_over_density_ {parameters.dt / parameters.density};
+  const auto density_over_dt_ {parameters.density / parameters.dt};
+  const auto density_inverse_ {1.0f / parameters.density};
+  const auto viscosity_times_dt_ {parameters.viscosity * parameters.dt};
+  const auto viscosity_dye_times_dt_ {parameters.viscosity_dye * parameters.dt};
+
+  utils::check_cuda_error(cudaMemcpyToSymbol(&dt_over_density, &dt_over_density_, sizeof(f32)));
+  utils::check_cuda_error(cudaMemcpyToSymbol(&density_over_dt, &density_over_dt_, sizeof(f32)));
+  utils::check_cuda_error(cudaMemcpyToSymbol(&density_inverse, &density_inverse_, sizeof(f32)));
+  utils::check_cuda_error(cudaMemcpyToSymbol(&viscosity_times_dt, &viscosity_times_dt_, sizeof(f32)));
+  utils::check_cuda_error(cudaMemcpyToSymbol(&viscosity_dye_times_dt, &viscosity_dye_times_dt_, sizeof(f32)));
 }
 
 } // namespace
