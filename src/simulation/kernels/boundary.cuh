@@ -10,9 +10,12 @@ namespace fluidsim::simulation::kernels {
 /// columns, rows, and finally corners.
 ///
 /// @param velocity Velocity grid for which to enforce boundary conditions (updated in-place).
+/// @param column_stream Stream on which to update the column boundary values.
+/// @param row_stream Stream on which to update the row boundary values.
 ///
 /// @note This function launches multiple kernels sequentially to update all boundary values.
-auto update_velocity_boundary(GridView<float2> velocity) -> void;
+///       The corner boundary values are updated on the default stream.
+auto update_velocity_boundary(GridView<float2> velocity, cudaStream_t column_stream, cudaStream_t row_stream) -> void;
 
 /// @brief Enforces free-slip boundary conditions for the pressure field.
 ///
@@ -20,9 +23,12 @@ auto update_velocity_boundary(GridView<float2> velocity) -> void;
 /// columns, rows, and finally corners.
 ///
 /// @param pressure Pressure grid for which to enforce boundary conditions (updated in-place).
+/// @param column_stream Stream on which to update the column boundary values.
+/// @param row_stream Stream on which to update the row boundary values.
+/// @param corner_stream Stream on which to update the corner boundary values.
 ///
 /// @note This function launches multiple kernels sequentially to update all boundary values.
-auto update_pressure_boundary(GridView<f32> pressure) -> void;
+auto update_pressure_boundary(GridView<f32> pressure, cudaStream_t column_stream, cudaStream_t row_stream, cudaStream_t corner_stream) -> void;
 
 /// @brief Enforces free-slip boundary conditions for the dye field.
 ///
@@ -30,8 +36,11 @@ auto update_pressure_boundary(GridView<f32> pressure) -> void;
 /// columns, rows, and finally corners.
 ///
 /// @param dye Dye grid for which to enforce boundary conditions (updated in-place).
+/// @param column_stream Stream on which to update the column boundary values.
+/// @param row_stream Stream on which to update the row boundary values.
+/// @param corner_stream Stream on which to update the corner boundary values.
 ///
 /// @note This function launches multiple kernels sequentially to update all boundary values.
-auto update_dye_boundary(GridView<f32> dye) -> void;
+auto update_dye_boundary(GridView<f32> dye, cudaStream_t column_stream, cudaStream_t row_stream, cudaStream_t corner_stream) -> void;
 
 } // namespace fluidsim::simulation::kernels
