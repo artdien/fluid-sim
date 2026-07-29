@@ -14,6 +14,8 @@ using namespace fluidsim::buffer;
 namespace {
 
 constexpr auto WINDOW_TITLE {std::string_view {"Fluid Simulation"}};
+constexpr auto UPDATE_TIME_MS {1000.0 / 60.0};
+constexpr auto MAX_LAG_MS {100.0};
 
 auto process_input(Window* window, Solver* solver, const MouseInput& mouse, const KeyboardInput& keyboard) -> void {
   if (keyboard.key == "esc") {
@@ -37,11 +39,18 @@ auto main() -> int {
   auto renderer {Renderer {width, height}};
   auto framebuffer {Framebuffer {width, height}};
 
+  auto lag {0.0};
+
   window.open([&](MouseInput mouse [[maybe_unused]], KeyboardInput keyboard, f64 elapsed_time) {
     window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
     process_input(&window, &solver, mouse, keyboard);
 
-    solver.step();
+    lag = std::min(lag + elapsed_time, MAX_LAG_MS);
+    while (lag >= UPDATE_TIME_MS) {
+      solver.step();
+      lag -= UPDATE_TIME_MS;
+    }
+
     framebuffer.update(solver.grid());
     renderer.render(framebuffer.texture_id());
   });
