@@ -11,8 +11,8 @@ namespace fluidsim::buffer::kernels {
 /// This method maps the scalar values from a simulation grid to a color representation
 /// and writes them as float4 pixels directly into the GPU's surface memory.
 ///
-/// @param surface CUDA surface object representing the target framebuffer.
-/// @param grid    Grid (e.g. dye concentration) to be visualized.
+/// @param surface    CUDA surface object representing the target framebuffer.
+/// @param grid       Grid (e.g. dye concentration) to be visualized.
 ///
 /// @note Values are clamped between 0.0 and 1.0,
 ///       ensuring that the resulting colors remain within a valid range for display.

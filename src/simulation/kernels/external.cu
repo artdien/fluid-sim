@@ -49,14 +49,14 @@ __global__ auto add_external_dye_kernel(GridView<f32> dye, f32 position_x, f32 p
 
 } // namespace
 
-auto add_external_force(GridView<float2> velocity, f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(velocity.width, velocity.height, 16)};
+auto add_external_force(GridView<float2> velocity, f32 position_x, f32 position_y, f32 force_x, f32 force_y, u32 block_size) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(velocity.width, velocity.height, block_size)};
   add_external_force_kernel<<<blocks, threads>>>(velocity, position_x, position_y, force_x, force_y);
   utils::check_async_cuda_error();
 }
 
-auto add_external_dye(GridView<f32> dye, f32 position_x, f32 position_y, f32 value) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
+auto add_external_dye(GridView<f32> dye, f32 position_x, f32 position_y, f32 value, u32 block_size) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, block_size)};
   add_external_dye_kernel<<<blocks, threads>>>(dye, position_x, position_y, value);
   utils::check_async_cuda_error();
 }

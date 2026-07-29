@@ -43,20 +43,20 @@ __global__ auto initialize_empty_kernel(GridView<f32> dye) -> void {
 
 } // namespace
 
-auto initialize_horizontal_split(GridView<f32> dye) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
+auto initialize_horizontal_split(GridView<f32> dye, u32 block_size) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, block_size)};
   initialize_horizontal_split_kernel<<<blocks, threads>>>(dye);
   utils::check_async_cuda_error();
 }
 
-auto initialize_vertical_split(GridView<f32> dye) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
+auto initialize_vertical_split(GridView<f32> dye, u32 block_size) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, block_size)};
   initialize_vertical_split_kernel<<<blocks, threads>>>(dye);
   utils::check_async_cuda_error();
 }
 
-auto initialize_empty(GridView<f32> dye) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
+auto initialize_empty(GridView<f32> dye, u32 block_size) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, block_size)};
   initialize_empty_kernel<<<blocks, threads>>>(dye);
   utils::check_async_cuda_error();
 }

@@ -15,7 +15,8 @@ namespace fluidsim::simulation::kernels {
 /// @param position_y Y-coordinate of the center of the force application.
 /// @param force_x    Magnitude and direction of the force along the x-axis.
 /// @param force_y    Magnitude and direction of the force along the y-axis.
-auto add_external_force(GridView<float2> velocity, f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void;
+/// @param block_size Side length of a square thread block (e.g. 16 for a 16x16 block).
+auto add_external_force(GridView<float2> velocity, f32 position_x, f32 position_y, f32 force_x, f32 force_y, u32 block_size) -> void;
 
 /// @brief Injects an external dye source into the dye field within a circular area of influence.
 ///
@@ -27,6 +28,7 @@ auto add_external_force(GridView<float2> velocity, f32 position_x, f32 position_
 /// @param position_x X-coordinate of the center of the added dye source.
 /// @param position_y Y-coordinate of the center of the added dye source.
 /// @param value      Magnitude of the dye source.
-auto add_external_dye(GridView<f32> dye, f32 position_x, f32 position_y, f32 value) -> void;
+/// @param block_size Side length of a square thread block (e.g. 16 for a 16x16 block).
+auto add_external_dye(GridView<f32> dye, f32 position_x, f32 position_y, f32 value, u32 block_size) -> void;
 
 } // namespace fluidsim::simulation::kernels

@@ -42,10 +42,12 @@ struct ExecutionConfiguration {
   dim3 threads;
 };
 
-///@brief Calculates the execution configuration for a 1D CUDA kernel.
+/// @brief Calculates the execution configuration for a 2D CUDA kernel.
 ///
-/// @param size       Total number of elements to process.
-/// @param block_size Number of threads per block.
+/// @param width      Width of the 2D domain in elements.
+/// @param height     Height of the 2D domain in elements.
+/// @param block_size Dimension of the square thread blocks.
+///                   Results in a block size of block_size * block_size threads.
 ///
 /// @return An ExecutionConfiguration containing the calculated grid and block dimensions.
 inline auto execution_configuration(u32 width, u32 height, u32 block_size) -> ExecutionConfiguration {
@@ -55,12 +57,10 @@ inline auto execution_configuration(u32 width, u32 height, u32 block_size) -> Ex
   };
 }
 
-/// @brief Calculates the execution configuration for a 2D CUDA kernel.
+///@brief Calculates the execution configuration for a 1D CUDA kernel.
 ///
-/// @param width      Width of the 2D domain in elements.
-/// @param height     Height of the 2D domain in elements.
-/// @param block_size Dimension of the square thread blocks.
-///                   Results in a block size of block_size * block_size threads.
+/// @param size       Total number of elements to process.
+/// @param block_size Number of threads per block.
 ///
 /// @return An ExecutionConfiguration containing the calculated grid and block dimensions.
 inline auto execution_configuration(u32 size, u32 block_size) -> ExecutionConfiguration {

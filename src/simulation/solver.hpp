@@ -19,6 +19,7 @@ struct SolverParameters {
   f32 external_dye_radius {15.0f};
   bool allow_adding_external_force {true};
   bool allow_adding_external_dye {true};
+  u32 block_size {16u};
 };
 
 class Solver {

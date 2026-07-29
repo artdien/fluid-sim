@@ -96,16 +96,16 @@ __global__ auto diffuse_dye_kernel(GridView<f32> dye_next, GridView<f32> dye, u3
 
 } // namespace
 
-auto diffuse_velocity(GridView<float2> velocity_next, GridView<float2> velocity) -> void {
-  const auto cache_size {16u};
-  const auto [blocks, threads] {utils::execution_configuration(velocity.width, velocity.height, 16)};
+auto diffuse_velocity(GridView<float2> velocity_next, GridView<float2> velocity, u32 block_size) -> void {
+  const auto cache_size {block_size};
+  const auto [blocks, threads] {utils::execution_configuration(velocity.width, velocity.height, block_size)};
   diffuse_velocity_kernel<<<blocks, threads, (cache_size + 3) * (cache_size + 2) * sizeof(float2)>>>(velocity_next, velocity, cache_size);
   utils::check_async_cuda_error();
 }
 
-auto diffuse_dye(GridView<f32> dye_next, GridView<f32> dye) -> void {
-  const auto cache_size {16u};
-  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
+auto diffuse_dye(GridView<f32> dye_next, GridView<f32> dye, u32 block_size) -> void {
+  const auto cache_size {block_size};
+  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, block_size)};
   diffuse_dye_kernel<<<blocks, threads, (cache_size + 3) * (cache_size + 2) * sizeof(f32)>>>(dye_next, dye, cache_size);
   utils::check_async_cuda_error();
 }

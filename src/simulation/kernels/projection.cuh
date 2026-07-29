@@ -11,7 +11,8 @@ namespace fluidsim::simulation::kernels {
 ///
 /// @param divergence Destination grid to store calculated divergence values.
 /// @param velocity   Current velocity grid.
-auto calculate_divergence(GridView<f32> divergence, GridView<float2> velocity) -> void;
+/// @param block_size Side length of a square thread block (e.g. 16 for a 16x16 block).
+auto calculate_divergence(GridView<f32> divergence, GridView<float2> velocity, u32 block_size) -> void;
 
 /// @brief Iteratively solves the Poisson equation for pressure.
 ///
@@ -21,15 +22,17 @@ auto calculate_divergence(GridView<f32> divergence, GridView<float2> velocity) -
 /// @param pressure_next Destination grid for this iteration's pressure values.
 /// @param pressure      Source pressure grid from the previous iteration.
 /// @param divergence    Divergence grid acting as the constraint.
-auto solve_pressure(GridView<f32> pressure_next, GridView<f32> pressure, GridView<f32> divergence) -> void;
+/// @param block_size    Side length of a square thread block (e.g. 16 for a 16x16 block).
+auto solve_pressure(GridView<f32> pressure_next, GridView<f32> pressure, GridView<f32> divergence, u32 block_size) -> void;
 
 /// @brief Projects the velocity field onto a divergence-free field.
 ///
 /// Subtracts the gradient of the solved pressure field from the velocity field,
 /// effectively 'correcting' the flow to be incompressible.
 ///
-/// @param velocity Velocity grid to be corrected (updated in-place).
-/// @param pressure Solved pressure grid used for the correction.
-auto project(GridView<float2> velocity, GridView<f32> p) -> void;
+/// @param velocity   Velocity grid to be corrected (updated in-place).
+/// @param pressure   Solved pressure grid used for the correction.
+/// @param block_size Side length of a square thread block (e.g. 16 for a 16x16 block).
+auto project(GridView<float2> velocity, GridView<f32> pressure, u32 block_size) -> void;
 
 } // namespace fluidsim::simulation::kernels

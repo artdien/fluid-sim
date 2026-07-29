@@ -63,12 +63,12 @@ __global__ auto project_kernel(GridView<float2> velocity, GridView<f32> pressure
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
+  // This kernel 'incorrectly' sets some boundary values for the velocity.
+  // However, they get corrected when updating the boundary values.
   if (i <= pressure.width && j <= pressure.height) {
     const auto p {pressure.ro(i, j)};
     const auto vel {velocity.ro(i, j)};
 
-    // This kernel 'incorrectly' sets some boundary values for the velocity.
-    // However, they get corrected when updating the boundary values.
     velocity.at(i, j) = make_float2(vel.x - dt_over_density * (pressure.ro(i + 1, j) - p), //
                                     vel.y - dt_over_density * (pressure.ro(i, j + 1) - p));
   }
@@ -76,21 +76,21 @@ __global__ auto project_kernel(GridView<float2> velocity, GridView<f32> pressure
 
 } // namespace
 
-auto calculate_divergence(GridView<f32> divergence, GridView<float2> velocity) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(divergence.width, divergence.height, 16)};
+auto calculate_divergence(GridView<f32> divergence, GridView<float2> velocity, u32 block_size) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(divergence.width, divergence.height, block_size)};
   calculate_divergence_kernel<<<blocks, threads>>>(divergence, velocity);
   utils::check_async_cuda_error();
 }
 
-auto solve_pressure(GridView<f32> pressure_next, GridView<f32> pressure, GridView<f32> divergence) -> void {
-  const auto cache_size {16u};
-  const auto [blocks, threads] {utils::execution_configuration(pressure.width, pressure.height, 16)};
+auto solve_pressure(GridView<f32> pressure_next, GridView<f32> pressure, GridView<f32> divergence, u32 block_size) -> void {
+  const auto cache_size {block_size};
+  const auto [blocks, threads] {utils::execution_configuration(pressure.width, pressure.height, block_size)};
   solve_pressure_kernel<<<blocks, threads, (cache_size + 3) * (cache_size + 2) * sizeof(f32)>>>(pressure_next, pressure, divergence, cache_size);
   utils::check_async_cuda_error();
 }
 
-auto project(GridView<float2> velocity, GridView<f32> pressure) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(pressure.width, pressure.height, 16)};
+auto project(GridView<float2> velocity, GridView<f32> pressure, u32 block_size) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(pressure.width, pressure.height, block_size)};
   project_kernel<<<blocks, threads>>>(velocity, pressure);
   utils::check_async_cuda_error();
 }

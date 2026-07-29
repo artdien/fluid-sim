@@ -96,12 +96,12 @@ __global__ auto update_dye_boundary_kernel(GridView<f32> dye, BoundaryType type)
 
 } // namespace
 
-auto update_velocity_boundary(GridView<float2> velocity, cudaStream_t column_stream, cudaStream_t row_stream) -> void {
-  const auto [blocks_height, threads_height] {utils::execution_configuration(velocity.height, 16)};
+auto update_velocity_boundary(GridView<float2> velocity, cudaStream_t column_stream, cudaStream_t row_stream, u32 block_size) -> void {
+  const auto [blocks_height, threads_height] {utils::execution_configuration(velocity.height, block_size)};
   update_velocity_boundary_kernel<<<blocks_height, threads_height, 0, column_stream>>>(velocity, BoundaryType::COLUMN);
   utils::check_async_cuda_error();
 
-  const auto [blocks_width, threads_width] {utils::execution_configuration(velocity.width, 16)};
+  const auto [blocks_width, threads_width] {utils::execution_configuration(velocity.width, block_size)};
   update_velocity_boundary_kernel<<<blocks_width, threads_width, 0, row_stream>>>(velocity, BoundaryType::ROW);
   utils::check_async_cuda_error();
 
@@ -111,12 +111,12 @@ auto update_velocity_boundary(GridView<float2> velocity, cudaStream_t column_str
   utils::check_async_cuda_error();
 }
 
-auto update_pressure_boundary(GridView<f32> pressure, cudaStream_t column_stream, cudaStream_t row_stream, cudaStream_t corner_stream) -> void {
-  const auto [blocks_height, threads_height] {utils::execution_configuration(pressure.height, 16)};
+auto update_pressure_boundary(GridView<f32> pressure, cudaStream_t column_stream, cudaStream_t row_stream, cudaStream_t corner_stream, u32 block_size) -> void {
+  const auto [blocks_height, threads_height] {utils::execution_configuration(pressure.height, block_size)};
   update_pressure_boundary_kernel<<<blocks_height, threads_height, 0, column_stream>>>(pressure, BoundaryType::COLUMN);
   utils::check_async_cuda_error();
 
-  const auto [blocks_width, threads_width] {utils::execution_configuration(pressure.width, 16)};
+  const auto [blocks_width, threads_width] {utils::execution_configuration(pressure.width, block_size)};
   update_pressure_boundary_kernel<<<blocks_width, threads_width, 0, row_stream>>>(pressure, BoundaryType::ROW);
   utils::check_async_cuda_error();
 
@@ -124,12 +124,12 @@ auto update_pressure_boundary(GridView<f32> pressure, cudaStream_t column_stream
   utils::check_async_cuda_error();
 }
 
-auto update_dye_boundary(GridView<f32> dye, cudaStream_t column_stream, cudaStream_t row_stream, cudaStream_t corner_stream) -> void {
-  const auto [blocks_height, threads_height] {utils::execution_configuration(dye.height, 16)};
+auto update_dye_boundary(GridView<f32> dye, cudaStream_t column_stream, cudaStream_t row_stream, cudaStream_t corner_stream, u32 block_size) -> void {
+  const auto [blocks_height, threads_height] {utils::execution_configuration(dye.height, block_size)};
   update_dye_boundary_kernel<<<blocks_height, threads_height, 0, column_stream>>>(dye, BoundaryType::COLUMN);
   utils::check_async_cuda_error();
 
-  const auto [blocks_width, threads_width] {utils::execution_configuration(dye.width, 16)};
+  const auto [blocks_width, threads_width] {utils::execution_configuration(dye.width, block_size)};
   update_dye_boundary_kernel<<<blocks_width, threads_width, 0, row_stream>>>(dye, BoundaryType::ROW);
   utils::check_async_cuda_error();
 

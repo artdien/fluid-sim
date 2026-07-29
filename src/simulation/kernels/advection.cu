@@ -60,14 +60,14 @@ __global__ auto advect_dye_kernel(GridView<f32> dye_next, GridView<f32> dye, Gri
 
 } // namespace
 
-auto advect_velocity(GridView<float2> velocity_next, GridView<float2> velocity) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(velocity.width, velocity.height, 16)};
+auto advect_velocity(GridView<float2> velocity_next, GridView<float2> velocity, u32 block_size) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(velocity.width, velocity.height, block_size)};
   advect_velocity_kernel<<<blocks, threads>>>(velocity_next, velocity);
   utils::check_async_cuda_error();
 }
 
-auto advect_dye(GridView<f32> dye_next, GridView<f32> dye, GridView<float2> velocity) -> void {
-  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, 16)};
+auto advect_dye(GridView<f32> dye_next, GridView<f32> dye, GridView<float2> velocity, u32 block_size) -> void {
+  const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, block_size)};
   advect_dye_kernel<<<blocks, threads>>>(dye_next, dye, velocity);
   utils::check_async_cuda_error();
 }
