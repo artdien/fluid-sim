@@ -105,7 +105,7 @@ auto Solver::step() -> void {
 auto Solver::add_external_force(f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void {
   const auto lock {std::lock_guard {mutex_}};
 
-  kernels::add_external_force(pimpl_->velocity.current(), position_x, position_y, force_x, force_y, 15.0f);
+  kernels::add_external_force(pimpl_->velocity.current(), position_x, position_y, force_x, force_y, parameters_.external_force_radius);
   kernels::update_velocity_boundary(pimpl_->velocity.current(), pimpl_->column_stream, pimpl_->row_stream);
 }
 
