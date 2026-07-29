@@ -58,7 +58,7 @@ struct Solver::Impl {
 Solver::Solver(const SolverParameters& parameters, u32 width, u32 height) : parameters_ {parameters}, pimpl_ {std::make_unique<Impl>(width, height)} {
   upload_parameters(parameters_);
 
-  kernels::initialize_horizontal_split(pimpl_->dye.current());
+  kernels::initialize_vertical_split(pimpl_->dye.current());
 }
 
 Solver::~Solver() {
