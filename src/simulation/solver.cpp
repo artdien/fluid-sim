@@ -21,6 +21,8 @@ auto upload_parameters(const SolverParameters& parameters) -> void {
   utils::check_cuda_error(cudaMemcpyToSymbol(&viscosity, &parameters.viscosity, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&viscosity_dye, &parameters.viscosity_dye, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&jacobi_weight, &parameters.jacobi_weight, sizeof(f32)));
+  utils::check_cuda_error(cudaMemcpyToSymbol(&external_force_radius, &parameters.external_force_radius, sizeof(f32)));
+  utils::check_cuda_error(cudaMemcpyToSymbol(&external_dye_radius, &parameters.external_dye_radius, sizeof(f32)));
 
   const auto dt_over_density_ {parameters.dt / parameters.density};
   const auto density_over_dt_ {parameters.density / parameters.dt};
@@ -58,7 +60,7 @@ struct Solver::Impl {
 Solver::Solver(const SolverParameters& parameters, u32 width, u32 height) : parameters_ {parameters}, pimpl_ {std::make_unique<Impl>(width, height)} {
   upload_parameters(parameters_);
 
-  kernels::initialize_vertical_split(pimpl_->dye.current());
+  kernels::initialize_empty(pimpl_->dye.current());
 }
 
 Solver::~Solver() {
@@ -103,10 +105,25 @@ auto Solver::step() -> void {
 }
 
 auto Solver::add_external_force(f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void {
+  if (!parameters_.allow_adding_external_force) {
+    return;
+  }
+
   const auto lock {std::lock_guard {mutex_}};
 
-  kernels::add_external_force(pimpl_->velocity.current(), position_x, position_y, force_x, force_y, parameters_.external_force_radius);
+  kernels::add_external_force(pimpl_->velocity.current(), position_x, position_y, force_x, force_y);
   kernels::update_velocity_boundary(pimpl_->velocity.current(), pimpl_->column_stream, pimpl_->row_stream);
+}
+
+auto Solver::add_external_dye(f32 position_x, f32 position_y, f32 value) -> void {
+  if (!parameters_.allow_adding_external_dye) {
+    return;
+  }
+
+  const auto lock {std::lock_guard {mutex_}};
+
+  kernels::add_external_dye(pimpl_->dye.current(), position_x, position_y, value);
+  kernels::update_dye_boundary(pimpl_->dye.current(), pimpl_->column_stream, pimpl_->row_stream, pimpl_->corner_stream);
 }
 
 auto Solver::update_parameters(const SolverParameters parameters) -> void {

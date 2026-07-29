@@ -16,6 +16,9 @@ struct SolverParameters {
   u32 jacobi_iterations {40u};
   f32 jacobi_weight {0.67f};
   f32 external_force_radius {15.0f};
+  f32 external_dye_radius {15.0f};
+  bool allow_adding_external_force {true};
+  bool allow_adding_external_dye {true};
 };
 
 class Solver {
@@ -49,14 +52,27 @@ public:
   /// This method maps the provided floating-point coordinates to the underlying
   /// grid cells and adds the force components to the velocity fields.
   ///
-  /// @param position_x The x-coordinate where the force is applied.
-  /// @param position_y The y-coordinate where the force is applied.
-  /// @param force_x    The magnitude and direction of the force along the x-axis.
-  /// @param force_y    The magnitude and direction of the force along the y-axis.
+  /// @param position_x X-coordinate where the force is applied.
+  /// @param position_y Y-coordinate where the force is applied.
+  /// @param force_x    Magnitude and direction of the force along the x-axis.
+  /// @param force_y    Magnitude and direction of the force along the y-axis.
   ///
   /// @note This method is thread-safe. It uses an internal mutex to prevent
   ///       race conditions when updating grid buffers during a simulation step.
   auto add_external_force(f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void;
+
+  /// @brief Adds an external dye source to the fluid at a specific position.
+  ///
+  /// This method maps the provided floating-point coordinates to the underlying
+  /// grid cells and adds the source to the dye field.
+  ///
+  /// @param position_x X-coordinate where the dye is added.
+  /// @param position_y Y-coordinate where the dye is added.
+  /// @param value      Magnitude of the dye source.
+  ///
+  /// @note This method is thread-safe. It uses an internal mutex to prevent
+  ///       race conditions when updating grid buffers during a simulation step.
+  auto add_external_dye(f32 position_x, f32 position_y, f32 value) -> void;
 
   /// @brief Update the parameters used for the fluid simulation.
   ///

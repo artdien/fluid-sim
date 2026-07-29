@@ -23,6 +23,7 @@ auto process_input(Window* window, Solver* solver, const MouseInput& mouse, cons
   }
   if (mouse.pressed) {
     solver->add_external_force(mouse.position.x, mouse.position.y, mouse.position_delta.dx, mouse.position_delta.dy);
+    solver->add_external_dye(mouse.position.x, mouse.position.y, 1.0f);
   }
 }
 
