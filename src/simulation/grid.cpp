@@ -51,8 +51,8 @@ auto DoubleGrid<T>::reset() -> void {
 }
 
 template class Grid<f32>;
-template class Grid<float2>;
 template class DoubleGrid<f32>;
 template class DoubleGrid<float2>;
+template class DoubleGrid<float4>;
 
 } // namespace fluidsim::simulation

@@ -23,6 +23,6 @@ auto advect_velocity(GridView<float2> velocity_next, GridView<float2> velocity, 
 /// @param dye        Current source dye grid.
 /// @param velocity   Velocity grid used to determine transport paths.
 /// @param block_size Side length of a square thread block (e.g. 16 for a 16x16 block).
-auto advect_dye(GridView<f32> dye_next, GridView<f32> dye, GridView<float2> velocity, u32 block_size) -> void;
+auto advect_dye(GridView<float4> dye_next, GridView<float4> dye, GridView<float2> velocity, u32 block_size) -> void;
 
 } // namespace fluidsim::simulation::kernels

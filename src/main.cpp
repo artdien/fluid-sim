@@ -1,4 +1,5 @@
 #include <format>
+#include <random>
 #include <string_view>
 
 #include "buffer/framebuffer.hpp"
@@ -17,13 +18,22 @@ constexpr auto WINDOW_TITLE {std::string_view {"Fluid Simulation"}};
 constexpr auto UPDATE_TIME_MS {1000.0 / 60.0};
 constexpr auto MAX_LAG_MS {100.0};
 
+auto random_device {std::random_device {}};
+auto seed {std::seed_seq {static_cast<u32>(random_device())}};
+auto generator {std::mt19937(seed)};
+auto uniform {std::uniform_real_distribution<f32> {0.0f, 1.0f}};
+
 auto process_input(Window* window, Solver* solver, const MouseInput& mouse, const KeyboardInput& keyboard) -> void {
   if (keyboard.key == "esc") {
     window->close();
   }
   if (mouse.pressed) {
+    const auto r {uniform(generator)};
+    const auto g {uniform(generator)};
+    const auto b {uniform(generator)};
+
     solver->add_external_force(mouse.position.x, mouse.position.y, mouse.position_delta.dx, mouse.position_delta.dy);
-    solver->add_external_dye(mouse.position.x, mouse.position.y, 1.0f);
+    solver->add_external_dye(mouse.position.x, mouse.position.y, r, g, b);
   }
 }
 

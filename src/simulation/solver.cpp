@@ -41,7 +41,7 @@ auto upload_parameters(const SolverParameters& parameters) -> void {
 
 struct Solver::Impl {
   DoubleGrid<float2> velocity;
-  DoubleGrid<f32> dye;
+  DoubleGrid<float4> dye;
   DoubleGrid<f32> pressure;
   Grid<f32> divergence;
 
@@ -104,25 +104,25 @@ auto Solver::step() -> void {
   }
 }
 
-auto Solver::add_external_force(f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void {
+auto Solver::add_external_force(f32 x, f32 y, f32 f_x, f32 f_y) -> void {
   if (!parameters_.allow_adding_external_force) {
     return;
   }
 
   const auto lock {std::lock_guard {mutex_}};
 
-  kernels::add_external_force(pimpl_->velocity.current(), position_x, position_y, force_x, force_y, parameters_.block_size);
+  kernels::add_external_force(pimpl_->velocity.current(), x, y, f_x, f_y, parameters_.block_size);
   kernels::update_velocity_boundary(pimpl_->velocity.current(), pimpl_->column_stream, pimpl_->row_stream, parameters_.block_size);
 }
 
-auto Solver::add_external_dye(f32 position_x, f32 position_y, f32 value) -> void {
+auto Solver::add_external_dye(f32 x, f32 y, f32 r, f32 g, f32 b) -> void {
   if (!parameters_.allow_adding_external_dye) {
     return;
   }
 
   const auto lock {std::lock_guard {mutex_}};
 
-  kernels::add_external_dye(pimpl_->dye.current(), position_x, position_y, value, parameters_.block_size);
+  kernels::add_external_dye(pimpl_->dye.current(), x, y, r, g, b, parameters_.block_size);
   kernels::update_dye_boundary(pimpl_->dye.current(), pimpl_->column_stream, pimpl_->row_stream, pimpl_->corner_stream, parameters_.block_size);
 }
 

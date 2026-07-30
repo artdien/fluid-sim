@@ -16,6 +16,6 @@ namespace fluidsim::buffer::kernels {
 ///
 /// @note Values are clamped between 0.0 and 1.0,
 ///       ensuring that the resulting colors remain within a valid range for display.
-auto update_framebuffer(cudaSurfaceObject_t surface, simulation::GridView<f32> grid) -> void;
+auto update_framebuffer(cudaSurfaceObject_t surface, simulation::GridView<float4> grid) -> void;
 
 } // namespace fluidsim::buffer::kernels

@@ -41,7 +41,7 @@ auto Framebuffer::update(simulation::RawGridView grid) -> void {
   descriptor.res.array.array = texture;
   utils::check_cuda_error(cudaCreateSurfaceObject(&surface, &descriptor));
 
-  kernels::update_framebuffer(surface, simulation::GridView<f32>(grid));
+  kernels::update_framebuffer(surface, simulation::GridView<float4>(grid));
   utils::check_async_cuda_error();
 
   utils::check_cuda_error(cudaDestroySurfaceObject(surface));

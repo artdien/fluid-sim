@@ -44,6 +44,6 @@ auto update_pressure_boundary(GridView<f32> pressure, cudaStream_t column_stream
 /// @param block_size    Length of thread block.
 ///
 /// @note This function launches multiple kernels sequentially to update all boundary values.
-auto update_dye_boundary(GridView<f32> dye, cudaStream_t column_stream, cudaStream_t row_stream, cudaStream_t corner_stream, u32 block_size) -> void;
+auto update_dye_boundary(GridView<float4> dye, cudaStream_t column_stream, cudaStream_t row_stream, cudaStream_t corner_stream, u32 block_size) -> void;
 
 } // namespace fluidsim::simulation::kernels

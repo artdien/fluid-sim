@@ -11,7 +11,7 @@ namespace fluidsim::simulation::kernels {
 ///
 /// @param dye        Dye grid to be initialized (updated in-place).
 /// @param block_size Side length of a square thread block (e.g. 16 for a 16x16 block).
-auto initialize_horizontal_split(GridView<f32> dye, u32 block_size) -> void;
+auto initialize_horizontal_split(GridView<float4> dye, u32 block_size) -> void;
 
 /// @brief Initializes the dye field with a vertically split concentration.
 ///
@@ -20,7 +20,7 @@ auto initialize_horizontal_split(GridView<f32> dye, u32 block_size) -> void;
 ///
 /// @param dye Dye grid to be initialized (updated in-place).
 /// @param block_size Side length of a square thread block (e.g. 16 for a 16x16 block).
-auto initialize_vertical_split(GridView<f32> dye, u32 block_size) -> void;
+auto initialize_vertical_split(GridView<float4> dye, u32 block_size) -> void;
 
 /// @brief Initializes the dye field with an empty concentration.
 ///
@@ -28,6 +28,6 @@ auto initialize_vertical_split(GridView<f32> dye, u32 block_size) -> void;
 ///
 /// @param dye Dye grid to be initialized (updated in-place).
 /// @param block_size Side length of a square thread block (e.g. 16 for a 16x16 block).
-auto initialize_empty(GridView<f32> dye, u32 block_size) -> void;
+auto initialize_empty(GridView<float4> dye, u32 block_size) -> void;
 
 } // namespace fluidsim::simulation::kernels

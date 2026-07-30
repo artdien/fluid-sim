@@ -42,7 +42,7 @@ __global__ auto advect_velocity_kernel(GridView<float2> velocity_next, GridView<
   }
 }
 
-__global__ auto advect_dye_kernel(GridView<f32> dye_next, GridView<f32> dye, GridView<float2> velocity) -> void {
+__global__ auto advect_dye_kernel(GridView<float4> dye_next, GridView<float4> dye, GridView<float2> velocity) -> void {
   const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1};
   const auto j {threadIdx.y + blockIdx.y * blockDim.y + 1};
 
@@ -54,7 +54,18 @@ __global__ auto advect_dye_kernel(GridView<f32> dye_next, GridView<f32> dye, Gri
     const auto i_d {ceilf(x_d + 0.5f)};
     const auto j_d {ceilf(y_d + 0.5f)};
 
-    dye_next.at(i, j) = bilerp(dye.ro(i_d - 1, j_d - 1), dye.ro(i_d - 1, j_d), dye.ro(i_d, j_d - 1), dye.ro(i_d, j_d), x_d - (i_d - 1.5f), y_d - (j_d - 1.5f));
+    const auto g_00 {dye.ro(i_d - 1, j_d - 1)};
+    const auto g_01 {dye.ro(i_d - 1, j_d)};
+    const auto g_10 {dye.ro(i_d, j_d - 1)};
+    const auto g_11 {dye.ro(i_d, j_d)};
+
+    const auto t_x {x_d - (i_d - 1.5f)};
+    const auto t_y {y_d - (j_d - 1.5f)};
+
+    dye_next.at(i, j) = make_float4(bilerp(g_00.x, g_01.x, g_10.x, g_11.x, t_x, t_y), //
+                                    bilerp(g_00.y, g_01.y, g_10.y, g_11.y, t_x, t_y), //
+                                    bilerp(g_00.z, g_01.z, g_10.z, g_11.z, t_x, t_y), //
+                                    1.0f);
   }
 }
 
@@ -66,7 +77,7 @@ auto advect_velocity(GridView<float2> velocity_next, GridView<float2> velocity, 
   utils::check_async_cuda_error();
 }
 
-auto advect_dye(GridView<f32> dye_next, GridView<f32> dye, GridView<float2> velocity, u32 block_size) -> void {
+auto advect_dye(GridView<float4> dye_next, GridView<float4> dye, GridView<float2> velocity, u32 block_size) -> void {
   const auto [blocks, threads] {utils::execution_configuration(dye.width, dye.height, block_size)};
   advect_dye_kernel<<<blocks, threads>>>(dye_next, dye, velocity);
   utils::check_async_cuda_error();

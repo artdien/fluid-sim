@@ -53,27 +53,29 @@ public:
   /// This method maps the provided floating-point coordinates to the underlying
   /// grid cells and adds the force components to the velocity fields.
   ///
-  /// @param position_x X-coordinate where the force is applied.
-  /// @param position_y Y-coordinate where the force is applied.
-  /// @param force_x    Magnitude and direction of the force along the x-axis.
-  /// @param force_y    Magnitude and direction of the force along the y-axis.
+  /// @param x   X-coordinate where the force is applied.
+  /// @param y   Y-coordinate where the force is applied.
+  /// @param f_x Magnitude and direction of the force along the x-axis.
+  /// @param f_y Magnitude and direction of the force along the y-axis.
   ///
   /// @note This method is thread-safe. It uses an internal mutex to prevent
   ///       race conditions when updating grid buffers during a simulation step.
-  auto add_external_force(f32 position_x, f32 position_y, f32 force_x, f32 force_y) -> void;
+  auto add_external_force(f32 x, f32 y, f32 f_x, f32 f_y) -> void;
 
   /// @brief Adds an external dye source to the fluid at a specific position.
   ///
   /// This method maps the provided floating-point coordinates to the underlying
   /// grid cells and adds the source to the dye field.
   ///
-  /// @param position_x X-coordinate where the dye is added.
-  /// @param position_y Y-coordinate where the dye is added.
-  /// @param value      Magnitude of the dye source.
+  /// @param x X-coordinate where the dye is added.
+  /// @param y Y-coordinate where the dye is added.
+  /// @param r Red channel of the dye source.
+  /// @param g Green channel of the dye source.
+  /// @param b Blue channel of the dye source.
   ///
   /// @note This method is thread-safe. It uses an internal mutex to prevent
   ///       race conditions when updating grid buffers during a simulation step.
-  auto add_external_dye(f32 position_x, f32 position_y, f32 value) -> void;
+  auto add_external_dye(f32 x, f32 y, f32 r, f32 g, f32 b) -> void;
 
   /// @brief Update the parameters used for the fluid simulation.
   ///
