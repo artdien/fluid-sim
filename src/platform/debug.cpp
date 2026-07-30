@@ -1,5 +1,6 @@
 #include "platform/debug.hpp"
 
+#include <algorithm>
 #include <format>
 #include <iostream>
 
@@ -7,8 +8,19 @@ using namespace std::string_literals;
 
 namespace fluidsim::platform {
 
+namespace {
+
+constexpr auto SUPPRESSED_MESSAGE_IDS {std::array {
+    131185u, // Details about created buffers
+}};
+
+}
+
 auto debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length, GLchar const* message,
                     [[maybe_unused]] void const* user_param) -> void {
+  if (std::find(SUPPRESSED_MESSAGE_IDS.begin(), SUPPRESSED_MESSAGE_IDS.end(), id) != SUPPRESSED_MESSAGE_IDS.end()) {
+    return;
+  }
 
   const auto source_as_string {[](auto source) {
     switch (source) {
