@@ -6,6 +6,8 @@
 #include <stdexcept>
 
 #include <glad/glad.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 #include "platform/debug.hpp"
 #include "platform/input.hpp"
@@ -103,12 +105,18 @@ Window::Window(u32 width, u32 height, const std::string& title) : title_ {title}
 
   glfwSetKeyCallback(window_, key_callback);
 
+  ImGui::CreateContext();
+  ImGui_ImplGlfw_InitForOpenGL(window_, true);
+  ImGui_ImplOpenGL3_Init();
+
   std::cout << "Initialized window with OpenGL context\n";
   std::cout << "  OpenGL: " << glGetString(GL_VERSION) << '\n';
   std::cout << "  GPU: " << glGetString(GL_RENDERER) << '\n';
 }
 
 Window::~Window() {
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
   glfwDestroyWindow(window_);
   glfwTerminate();
 }
@@ -124,8 +132,15 @@ auto Window::open(std::function<void(MouseInput, KeyboardInput, f64)> execute_pe
 
     mouse_position = determine_mouse_position(window_, height_, mouse_position);
 
-    const auto mouse_input {get_mouse_input_event()};
-    const auto keyboard_input {get_keyboard_input_event()};
+    auto mouse_input {get_mouse_input_event()};
+    if (ImGui::GetIO().WantCaptureMouse) {
+      mouse_input.reset();
+    }
+
+    auto keyboard_input {get_keyboard_input_event()};
+    if (ImGui::GetIO().WantCaptureKeyboard) {
+      keyboard_input.reset();
+    }
 
     execute_per_frame(mouse_input.value_or({}), keyboard_input.value_or({}), elapsed_time);
 

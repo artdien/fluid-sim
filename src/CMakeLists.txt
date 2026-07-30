@@ -1,6 +1,7 @@
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(CUDAToolkit REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 
 add_executable(fluid-sim)
 target_link_libraries(
@@ -9,6 +10,7 @@ target_link_libraries(
     glfw
     glad::glad
     CUDA::cudart
+    imgui::imgui
 )
 target_include_directories(
   fluid-sim
@@ -38,6 +40,7 @@ target_sources(
     simulation/kernels/projection.cu
     simulation/grid.cpp
     simulation/solver.cpp
+    ui/menu.cpp
     utils/cuda.cpp
     utils/gl.cpp
     main.cpp

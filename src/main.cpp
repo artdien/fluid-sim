@@ -6,11 +6,13 @@
 #include "platform/window.hpp"
 #include "rendering/renderer.hpp"
 #include "simulation/solver.hpp"
+#include "ui/menu.hpp"
 
 using namespace fluidsim::platform;
 using namespace fluidsim::simulation;
 using namespace fluidsim::rendering;
 using namespace fluidsim::buffer;
+using namespace fluidsim::ui;
 
 namespace {
 
@@ -23,14 +25,23 @@ auto seed {std::seed_seq {static_cast<u32>(random_device())}};
 auto generator {std::mt19937(seed)};
 auto uniform {std::uniform_real_distribution<f32> {0.0f, 1.0f}};
 
-auto process_input(Window* window, Solver* solver, const MouseInput& mouse, const KeyboardInput& keyboard) -> void {
+auto parameters {SolverParameters {}};
+auto configuration {ExternalConfiguration {}};
+auto initial_state {InitialState::EMPTY};
+auto randomize_external_dye {true};
+
+auto process_input(Window* window, Menu* menu, Solver* solver, const MouseInput& mouse, const KeyboardInput& keyboard) -> void {
   if (keyboard.key == "esc") {
     window->close();
   }
+  if (keyboard.key == "m") {
+    menu->toggle();
+  }
+
   if (mouse.pressed) {
-    const auto r {uniform(generator)};
-    const auto g {uniform(generator)};
-    const auto b {uniform(generator)};
+    const auto r {randomize_external_dye ? uniform(generator) : 1.0f};
+    const auto g {randomize_external_dye ? uniform(generator) : 1.0f};
+    const auto b {randomize_external_dye ? uniform(generator) : 1.0f};
 
     solver->add_external_force(mouse.position.x, mouse.position.y, mouse.position_delta.dx, mouse.position_delta.dy);
     solver->add_external_dye(mouse.position.x, mouse.position.y, r, g, b);
@@ -43,18 +54,17 @@ auto main() -> int {
   constexpr auto width {1920u};
   constexpr auto height {1080u};
 
-  auto parameters {SolverParameters {}};
-
   auto window {Window {width, height}};
-  auto solver {Solver {parameters, width, height}};
+  auto solver {Solver {width, height, parameters, configuration, initial_state}};
   auto renderer {Renderer {width, height}};
   auto framebuffer {Framebuffer {width, height}};
+  auto menu {Menu {&solver, &parameters, &configuration, &initial_state, &randomize_external_dye}};
 
   auto lag {0.0};
 
   window.open([&](MouseInput mouse [[maybe_unused]], KeyboardInput keyboard, f64 elapsed_time) {
     window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
-    process_input(&window, &solver, mouse, keyboard);
+    process_input(&window, &menu, &solver, mouse, keyboard);
 
     lag = std::min(lag + elapsed_time, MAX_LAG_MS);
     while (lag >= UPDATE_TIME_MS) {
@@ -64,6 +74,7 @@ auto main() -> int {
 
     framebuffer.update(solver.grid());
     renderer.render(framebuffer.texture_id());
+    menu.display();
   });
 
   return 0;

@@ -8,18 +8,27 @@
 
 namespace fluidsim::simulation {
 
+enum class InitialState {
+  EMPTY,
+  HORIZONTAL_SPLIT,
+  VERTICAL_SPLIT,
+};
+
 struct SolverParameters {
   f32 dt {1.0f};
   f32 density {1.0f};
-  f32 viscosity {0.2f};
-  f32 viscosity_dye {0.2f};
+  f32 viscosity {0.0f};
+  f32 viscosity_dye {0.0f};
   u32 jacobi_iterations {40u};
   f32 jacobi_weight {0.67f};
+  u32 block_size {16u};
+};
+
+struct ExternalConfiguration {
   f32 external_force_radius {15.0f};
   f32 external_dye_radius {15.0f};
   bool allow_adding_external_force {true};
   bool allow_adding_external_dye {true};
-  u32 block_size {16u};
 };
 
 class Solver {
@@ -28,10 +37,13 @@ public:
   ///
   /// This constructor allocates GPU memory for several internal grids.
   ///
-  /// @param parameters Initial parameters for the solver.
-  /// @param width  Number of horizontal grid cells.
-  /// @param height Number of vertical grid cells.
-  Solver(const SolverParameters& parameters, u32 width, u32 height);
+  /// @param width         Number of horizontal grid cells.
+  /// @param height        Number of vertical grid cells.
+  /// @param parameters    Parameters for the solver.
+  /// @param configuration Configuration for adding external forces or quantities.
+  /// @param initial_state Initial state for the simulation.
+  Solver(u32 width, u32 height, const SolverParameters& parameters, const ExternalConfiguration& configuration,
+         InitialState initial_state = InitialState::EMPTY);
 
   Solver(const Solver&) = delete;
   Solver(Solver&&) = delete;
@@ -77,7 +89,7 @@ public:
   ///       race conditions when updating grid buffers during a simulation step.
   auto add_external_dye(f32 x, f32 y, f32 r, f32 g, f32 b) -> void;
 
-  /// @brief Update the parameters used for the fluid simulation.
+  /// @brief Updates the parameters used for the fluid simulation.
   ///
   /// The parameters can updated between every step.
   /// Once updated, the next step will immediately use the new parameters.
@@ -86,7 +98,28 @@ public:
   ///
   /// @note This method is thread-safe. It uses an internal mutex to prevent
   ///       race conditions when updating parameters during a simulation step.
-  auto update_parameters(const SolverParameters parameters) -> void;
+  auto update_parameters(const SolverParameters& parameters) -> void;
+
+  /// @brief Updates the configuration used for adding external forces or quantities.
+  ///
+  /// The configuration can updated between every step.
+  /// Once updated, the next step will immediately use the new configuration.
+  ///
+  /// @param configuration New configuration for adding external forces or quantities.
+  ///
+  /// @note This method is thread-safe. It uses an internal mutex to prevent
+  ///       race conditions when updating the configuration during a simulation step.
+  auto update_configuration(const ExternalConfiguration& configuration) -> void;
+
+  /// @brief Resets the grids used in the fluid simulation.
+  ///
+  /// After the reset, the grids are initialized with the initial state specified in the parameters.
+  ///
+  /// @param initial_state Initial state for the simulation.
+  ///
+  /// @note This method is thread-safe. It uses an internal mutex to prevent
+  ///       race conditions when updating parameters during a simulation step.
+  auto reset(InitialState initial_state = InitialState::EMPTY) -> void;
 
   /// @brief Provides a view of the grid data used for visualization.
   ///
@@ -95,6 +128,7 @@ public:
 
 private:
   SolverParameters parameters_;
+  ExternalConfiguration configuration_;
   std::mutex mutex_;
 
   struct Impl;
