@@ -130,6 +130,8 @@ auto Menu::display() -> void {
 
 auto Menu::toggle() -> void {
   visible_ = !visible_;
+  ImGui::GetIO().WantCaptureMouse = false;
+  ImGui::GetIO().WantCaptureKeyboard = false;
 }
 
 } // namespace fluidsim::ui
