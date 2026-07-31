@@ -5,10 +5,13 @@
 
 #include <GLFW/glfw3.h>
 
-#include "platform/input.hpp"
 #include "platform/types.hpp"
 
 namespace fluidsim::platform {
+
+// Forward declarations
+struct MouseInput;
+struct KeyboardInput;
 
 class Window {
 public:

@@ -3,9 +3,11 @@
 #include <chrono>
 #include <format>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 
 #include <glad/glad.h>
+#include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
@@ -85,7 +87,7 @@ Window::Window(u32 width, u32 height, const std::string& title) : title_ {title}
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
   }
 
-  window_ = glfwCreateWindow(static_cast<i32>(width_), static_cast<i32>(height_), title_.c_str(), NULL, NULL);
+  window_ = glfwCreateWindow(static_cast<i32>(width_), static_cast<i32>(height_), title_.c_str(), nullptr, nullptr);
   if (!window_) {
     glfwTerminate();
     throw std::runtime_error("Failed to create window");

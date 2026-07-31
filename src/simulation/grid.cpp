@@ -1,6 +1,7 @@
 #include "simulation/grid.hpp"
 
 #include <cuda_runtime.h>
+#include <vector_types.h>
 
 #include "utils/cuda.hpp"
 

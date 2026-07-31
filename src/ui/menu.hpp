@@ -1,6 +1,14 @@
 #pragma once
 
-#include "simulation/solver.hpp"
+// Forward declarations
+namespace fluidsim::simulation {
+
+class Solver;
+enum class InitialState;
+struct ExternalConfiguration;
+struct SolverParameters;
+
+} // namespace fluidsim::simulation
 
 namespace fluidsim::ui {
 

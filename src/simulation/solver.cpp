@@ -1,6 +1,8 @@
 #include "simulation/solver.hpp"
 
 #include <cuda_runtime.h>
+#include <driver_types.h>
+#include <vector_types.h>
 
 #include "simulation/kernels/advection.cuh"
 #include "simulation/kernels/boundary.cuh"

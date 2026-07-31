@@ -1,8 +1,14 @@
 #include "ui/menu.hpp"
 
+#include <array>
+#include <limits>
+
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+
+#include "platform/types.hpp"
+#include "simulation/solver.hpp"
 
 namespace fluidsim::ui {
 

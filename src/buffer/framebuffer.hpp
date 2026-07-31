@@ -5,7 +5,13 @@
 #include <glad/glad.h>
 
 #include "platform/types.hpp"
-#include "simulation/grid.hpp"
+
+// Forward declarations
+namespace fluidsim::simulation {
+
+struct RawGridView;
+
+} // namespace fluidsim::simulation
 
 namespace fluidsim::buffer {
 

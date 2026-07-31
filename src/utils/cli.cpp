@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <charconv>
+#include <ranges>
 #include <span>
 #include <system_error>
 

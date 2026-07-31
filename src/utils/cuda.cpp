@@ -1,8 +1,10 @@
 #include "utils/cuda.hpp"
 
 #include <format>
+#include <stdexcept>
 
 #include <cuda_runtime.h>
+#include <driver_types.h>
 
 namespace fluidsim::utils {
 

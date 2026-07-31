@@ -1,6 +1,7 @@
 #include "platform/debug.hpp"
 
 #include <algorithm>
+#include <array>
 #include <format>
 #include <iostream>
 

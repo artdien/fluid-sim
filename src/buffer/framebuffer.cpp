@@ -1,9 +1,13 @@
 #include "buffer/framebuffer.hpp"
 
 #include <cuda_gl_interop.h>
-#include <cuda_runtime.h>
+#include <cuda_runtime_api.h>
+#include <driver_types.h>
+#include <surface_types.h>
+#include <vector_types.h>
 
 #include "buffer/kernels/update_framebuffer.cuh"
+#include "simulation/grid.hpp"
 #include "utils/cuda.hpp"
 
 namespace fluidsim::buffer {

@@ -1,8 +1,13 @@
+#include <algorithm>
 #include <format>
+#include <functional>
+#include <optional>
 #include <random>
 #include <string_view>
 
 #include "buffer/framebuffer.hpp"
+#include "platform/input.hpp"
+#include "platform/types.hpp"
 #include "platform/window.hpp"
 #include "rendering/renderer.hpp"
 #include "simulation/solver.hpp"
