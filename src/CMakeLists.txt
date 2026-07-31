@@ -41,7 +41,8 @@ target_sources(
     simulation/grid.cpp
     simulation/solver.cpp
     ui/menu.cpp
+    utils/cli.cpp
     utils/cuda.cpp
     utils/gl.cpp
     main.cpp
-  )
+)

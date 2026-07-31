@@ -7,12 +7,14 @@
 #include "rendering/renderer.hpp"
 #include "simulation/solver.hpp"
 #include "ui/menu.hpp"
+#include "utils/cli.hpp"
 
 using namespace fluidsim::platform;
 using namespace fluidsim::simulation;
 using namespace fluidsim::rendering;
 using namespace fluidsim::buffer;
 using namespace fluidsim::ui;
+using namespace fluidsim::utils;
 
 namespace {
 
@@ -50,9 +52,9 @@ auto process_input(Window* window, Menu* menu, Solver* solver, const MouseInput&
 
 } // namespace
 
-auto main() -> int {
-  constexpr auto width {1920u};
-  constexpr auto height {1080u};
+auto main(i32 argc, c8* argv[]) -> int {
+  const auto width {parse_cli_argument(argc, argv, "-width").value_or(1920u)};
+  const auto height {parse_cli_argument(argc, argv, "-height").value_or(1080u)};
 
   auto window {Window {width, height}};
   auto solver {Solver {width, height, parameters, configuration, initial_state}};
