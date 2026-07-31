@@ -38,6 +38,7 @@ target_sources(
     simulation/kernels/initial.cu
     simulation/kernels/parameters.cu
     simulation/kernels/projection.cu
+    simulation/kernels/vorticity.cu
     simulation/grid.cpp
     simulation/solver.cpp
     ui/menu.cpp

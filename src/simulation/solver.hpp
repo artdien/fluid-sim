@@ -19,7 +19,8 @@ struct SolverParameters {
   f32 density {1.0f};
   f32 viscosity {0.0f};
   f32 viscosity_dye {0.0f};
-  u32 jacobi_iterations {40u};
+  f32 confinement {0.2f};
+  u32 jacobi_iterations {50u};
   f32 jacobi_weight {0.67f};
   u32 block_size {16u};
 };

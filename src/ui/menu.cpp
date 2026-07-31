@@ -82,6 +82,7 @@ auto Menu::display() -> void {
   input_field_f32("Density", &parameters_->density, 0.001f);
   input_field_f32("Viscosity (Velocity)", &parameters_->viscosity);
   input_field_f32("Viscosity (Dye)", &parameters_->viscosity_dye);
+  input_field_f32("Vorticity Confinement", &parameters_->confinement);
   input_field_u32("Jacobi Iterations", &parameters_->jacobi_iterations, 1u);
   input_field_f32("Jacobi Weight", &parameters_->jacobi_weight, 0.0f, 1.0f);
   input_field_u32("Block Size", &parameters_->block_size, 1u);

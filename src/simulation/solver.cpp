@@ -11,6 +11,7 @@
 #include "simulation/kernels/initial.cuh"
 #include "simulation/kernels/parameters.cuh"
 #include "simulation/kernels/projection.cuh"
+#include "simulation/kernels/vorticity.cuh"
 #include "utils/cuda.hpp"
 
 namespace fluidsim::simulation {
@@ -22,6 +23,7 @@ auto upload_parameters(const SolverParameters& parameters) -> void {
   utils::check_cuda_error(cudaMemcpyToSymbol(&density, &parameters.density, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&viscosity, &parameters.viscosity, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&viscosity_dye, &parameters.viscosity_dye, sizeof(f32)));
+  utils::check_cuda_error(cudaMemcpyToSymbol(&confinement, &parameters.confinement, sizeof(f32)));
   utils::check_cuda_error(cudaMemcpyToSymbol(&jacobi_weight, &parameters.jacobi_weight, sizeof(f32)));
 
   // Pre-calculate some derived parameters for efficiency
@@ -50,10 +52,11 @@ struct Solver::Impl {
   DoubleGrid<float4> dye;
   DoubleGrid<f32> pressure;
   Grid<f32> divergence;
+  Grid<f32> vorticity;
 
   kernels::BoundaryStreams streams;
 
-  Impl(u32 width, u32 height) : velocity {width, height}, dye {width, height}, pressure {width, height}, divergence {width, height} {
+  Impl(u32 width, u32 height) : velocity {width, height}, dye {width, height}, pressure {width, height}, divergence {width, height}, vorticity {width, height} {
     cudaStreamCreate(&streams.corner);
     cudaStreamCreate(&streams.column);
     cudaStreamCreate(&streams.row);
@@ -75,6 +78,14 @@ Solver::~Solver() {
 
 auto Solver::step() -> void {
   const auto lock {std::lock_guard {mutex_}};
+
+  if (parameters_.confinement > 0.0f) {
+    kernels::calculate_vorticity(pimpl_->vorticity.view(), pimpl_->velocity.current(), parameters_.block_size);
+    kernels::update_vorticity_boundary(pimpl_->vorticity.view(), pimpl_->streams, parameters_.block_size);
+
+    kernels::apply_vorticity_confinement(pimpl_->velocity.current(), pimpl_->vorticity.view(), parameters_.block_size);
+    kernels::update_velocity_boundary(pimpl_->velocity.current(), pimpl_->streams, parameters_.block_size);
+  }
 
   kernels::advect_velocity(pimpl_->velocity.next(), pimpl_->velocity.current(), parameters_.block_size);
   kernels::update_velocity_boundary(pimpl_->velocity.next(), pimpl_->streams, parameters_.block_size);
@@ -151,6 +162,7 @@ auto Solver::reset(InitialState initial_state) -> void {
   pimpl_->dye.reset();
   pimpl_->pressure.reset();
   pimpl_->divergence.reset();
+  pimpl_->vorticity.reset();
 
   switch (initial_state) {
     case InitialState::EMPTY:

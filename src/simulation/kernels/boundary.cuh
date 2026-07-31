@@ -47,4 +47,16 @@ auto update_pressure_boundary(GridView<f32> pressure, BoundaryStreams streams, u
 /// @note This function launches multiple kernels sequentially to update all boundary values.
 auto update_dye_boundary(GridView<float4> dye, BoundaryStreams streams, u32 block_size) -> void;
 
+/// @brief Enforces free-slip boundary conditions for the vorticity field.
+///
+/// This method performs a three-pass update on the ghost cells surrounding the grid:
+/// columns, rows, and finally corners.
+///
+/// @param dye        Vorticity grid for which to enforce boundary conditions (updated in-place).
+/// @param streams    Streams on which to update the boundary values.
+/// @param block_size Length of thread block.
+///
+/// @note This function launches multiple kernels sequentially to update all boundary values.
+auto update_vorticity_boundary(GridView<f32> vorticity, BoundaryStreams streams, u32 block_size) -> void;
+
 } // namespace fluidsim::simulation::kernels

@@ -94,6 +94,29 @@ __global__ auto update_dye_boundary_kernel(GridView<float4> dye, BoundaryType ty
   }
 }
 
+__global__ auto update_vorticity_boundary_kernel(GridView<f32> vorticity, BoundaryType type) -> void {
+  if (type == BoundaryType::ROW) {
+    if (const auto i {threadIdx.x + blockIdx.x * blockDim.x + 1}; i <= vorticity.width) {
+      vorticity.at(i, 0) = vorticity.at(i, 1);
+      vorticity.at(i, vorticity.height + 1) = vorticity.at(i, vorticity.height);
+    }
+  } else if (type == BoundaryType::COLUMN) {
+    if (const auto j {threadIdx.x + blockIdx.x * blockDim.x + 1}; j <= vorticity.height) {
+      vorticity.at(0, j) = vorticity.at(1, j);
+      vorticity.at(vorticity.width + 1, j) = vorticity.at(vorticity.width, j);
+    }
+  } else if (type == BoundaryType::CORNER) {
+    // bottom left
+    vorticity.at(0, 0) = vorticity.at(1, 1);
+    // bottom right
+    vorticity.at(vorticity.width + 1, 0) = vorticity.at(vorticity.width, 1);
+    // top left
+    vorticity.at(0, vorticity.height + 1) = vorticity.at(1, vorticity.height);
+    // top right
+    vorticity.at(vorticity.width + 1, vorticity.height + 1) = vorticity.at(vorticity.width, vorticity.height);
+  }
+}
+
 } // namespace
 
 auto update_velocity_boundary(GridView<float2> velocity, BoundaryStreams streams, u32 block_size) -> void {
@@ -134,6 +157,19 @@ auto update_dye_boundary(GridView<float4> dye, BoundaryStreams streams, u32 bloc
   utils::check_async_cuda_error();
 
   update_dye_boundary_kernel<<<1, 1, 0, streams.corner>>>(dye, BoundaryType::CORNER);
+  utils::check_async_cuda_error();
+}
+
+auto update_vorticity_boundary(GridView<f32> vorticity, BoundaryStreams streams, u32 block_size) -> void {
+  const auto [blocks_height, threads_height] {utils::execution_configuration(vorticity.height, block_size)};
+  update_vorticity_boundary_kernel<<<blocks_height, threads_height, 0, streams.column>>>(vorticity, BoundaryType::COLUMN);
+  utils::check_async_cuda_error();
+
+  const auto [blocks_width, threads_width] {utils::execution_configuration(vorticity.width, block_size)};
+  update_vorticity_boundary_kernel<<<blocks_width, threads_width, 0, streams.row>>>(vorticity, BoundaryType::ROW);
+  utils::check_async_cuda_error();
+
+  update_vorticity_boundary_kernel<<<1, 1, 0, streams.corner>>>(vorticity, BoundaryType::CORNER);
   utils::check_async_cuda_error();
 }
 
