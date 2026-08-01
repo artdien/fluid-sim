@@ -44,7 +44,7 @@ __global__ auto update_velocity_boundary_kernel(GridView<float2> velocity, Bound
 
     // top right
     velocity.at(velocity.width, velocity.height + 1).x = 0.5f * velocity.at(velocity.width - 1, velocity.height).x;
-    velocity.at(velocity.width + 1, velocity.height).y = 0.5f * velocity.at(velocity.width + 1, velocity.height - 1).y;
+    velocity.at(velocity.width + 1, velocity.height).y = 0.5f * velocity.at(velocity.width, velocity.height - 1).y;
   }
 }
 
