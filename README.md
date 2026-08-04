@@ -63,7 +63,7 @@ The default build settings use Clang as the C++ compiler and Ninja as the build 
    ./build/src/fluid-sim -width 1920 -height 1080
    ```
 
-### Usage
+## Usage
 
 Launching the application opens a window and immediately starts the simulation. The initial window size can be specified via command-line arguments as shown above.
 
@@ -97,7 +97,7 @@ The menu settings are:
 - Button **Apply Parameters**: Apply current simulation parameter changes.
 - Button **Reset Simulation**: Reset the simulation grids using the specified initial state.
 
-### Dependencies
+## Dependencies
 
 This project uses the following dependencies, managed via vcpkg:
 
