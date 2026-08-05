@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glad/glad.h> // must be included before cuda_gl_interop.h
+
 #include <cuda_gl_interop.h>
 
 #include "simulation/grid.hpp"
